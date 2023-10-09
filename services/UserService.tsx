@@ -23,10 +23,10 @@ export const updateUserByIdApi = (id: string, userData: { username: string; pass
         username: userData.username,
         password: userData.password,
     };
-    const options = {
+    const options = axios({
         method: "PUT",
         url: BASE_URL.concat(`/user/profile/${id}`),
         data: updateUserRequest
-    };
+    });
     return options;
 }
