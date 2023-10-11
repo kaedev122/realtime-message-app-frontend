@@ -12,10 +12,11 @@ import LoginScreen from './screens/authScreen/LoginScreen'
 import ChatScreen from './screens/chatScreen/ChatScreen';
 import MessageScreen from './screens/chatScreen/MessageScreen';
 ///
-import FriendScreen from './screens/FriendScreen';
+import ContactsScreen from './screens/ContactsScreen';
 ///
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
+import NewMessageScreen from './screens/chatScreen/NewMessageScreen';
 ///
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -52,8 +53,8 @@ const TabNavigator = ({ navigation, route }: any) => {
         }}
       />
       <Tab.Screen
-        name="Friend"
-        component={FriendScreen}
+        name="ContactsScreen"
+        component={ContactsScreen}
         options={{
           tabBarIcon: ({ focused }) => (
             <Ionicons name={focused ? 'md-people' : 'md-people-outline'} size={25} />
@@ -87,7 +88,7 @@ const App = () => {
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
         <Stack.Screen name="MessageScreen" component={MessageScreen} />
-        {/* <Stack.Screen name="NewMessageScreen" component={NewMessageScreen} /> */}
+        <Stack.Screen name="NewMessageScreen" component={NewMessageScreen} />
         <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
         <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
       </Stack.Navigator>

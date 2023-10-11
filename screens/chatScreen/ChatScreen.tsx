@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 import { Entypo } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-navigation';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, AntDesign } from '@expo/vector-icons';
 import { getAllConversationApi } from '../../services/ChatService'
 import { getUserDataByIdApi } from '../../services/UserService'
 
@@ -23,13 +23,13 @@ const ChatScreen = ({ navigation, route }: any) => {
             const listData = await getAllConversationApi();
             const { data } = listData;
             setConversation(data);
-        } catch (error:any) {
+        } catch (error: any) {
             alert(error.response);
         }
         setIsLoading(false);
     };
 
-    const renderConversationItem = ({ item }:any) => {
+    const renderConversationItem = ({ item }: any) => {
         let receiver = {}
         // console.log(item.members[0]._id)
         // console.log(userData._id)
@@ -40,7 +40,7 @@ const ChatScreen = ({ navigation, route }: any) => {
             receiver = item.members[0]
         }
         const conversationImage = receiver?.profilePicture ? `${receiver?.profilePicture}` : `https://cdn-icons-png.flaticon.com/512/847/847969.png`
-        
+
         return (
             <TouchableOpacity style={styles.conversation} onPress={() => {
                 navigation.navigate('MessageScreen', {
@@ -95,6 +95,10 @@ const ChatScreen = ({ navigation, route }: any) => {
                         name="new-message" size={25} color="#428DFE" />
                 </View>
                 <View style={{ width: "95%", flexDirection: "row", alignItems: "center" }}>
+                    {/* <Ionicons
+                        name="ios-search-outline"
+                        size={24}
+                    /> */}
                     <TextInput
                         value={textSearch}
                         placeholder="Tìm kiếm"
