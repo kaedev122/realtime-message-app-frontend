@@ -12,7 +12,7 @@ import LoginScreen from './screens/authScreen/LoginScreen'
 import ChatScreen from './screens/chatScreen/ChatScreen';
 import MessageScreen from './screens/chatScreen/MessageScreen';
 ///
-import ContactsScreen from './screens/ContactsScreen';
+import ContactsScreen from './screens/friendScreen/ContactsScreen';
 ///
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
@@ -91,6 +91,8 @@ const App = () => {
         <Stack.Screen name="NewMessageScreen" component={NewMessageScreen} />
         <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
         <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
+        <Stack.Screen name="ContacstsScreen" component={ContactsScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

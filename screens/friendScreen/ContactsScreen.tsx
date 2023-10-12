@@ -22,16 +22,17 @@ const ContactsScreen = ({ navigation }) => {
         setSearch(text)
         const filteredData = contacts.filter((user) =>
             user.username.toLowerCase().includes(text.toLowerCase())
-        )
-        setFilteredUsers(filteredData)
+        ) 
+        setFilteredUsers(contacts)
     }
+    
 
     const renderItem = ({ item, index }) => (
         <TouchableOpacity
             key={index}
             onPress={() =>
                 navigation.navigate('MessageScreen', {
-                    userName: item.username,
+                    username: item.username,
                 })
             }
             style={[
@@ -40,7 +41,7 @@ const ContactsScreen = ({ navigation }) => {
                     flexDirection: 'row',
                     alignItems: 'center',
                     paddingHorizontal: 22,
-                    borderBottomWidth: 1,
+                    
                 },
                 index % 2 !== 0
                     ? {
@@ -86,8 +87,8 @@ const ContactsScreen = ({ navigation }) => {
                     flexDirection: 'column',
                 }}
             >
-                <Text >
-                    {item.userName}
+                <Text  style={{ color: 'black', fontWeight: "bold" }}>
+                    {item.username}
                 </Text>
                 <Text style={{ fontSize: 14, }}>
                     {item.lastSeen}
@@ -95,6 +96,52 @@ const ContactsScreen = ({ navigation }) => {
             </View>
         </TouchableOpacity>
     )
+
+    const contacts = [
+        {
+          id: '1',
+          username: 'John Doe',
+          userImg: require('../../assets/img/male.png'),
+          isOnline: true,
+          lastSeen: 'Just Now',
+        },
+        {
+          id: '2',
+          username: 'Jane Doe',
+          userImg: require('../../assets/img/male.png'),
+
+          isOnline: false,
+          lastSeen: 'Last seen yesterday',
+        },
+        {
+          id: '3',
+          username: 'Peter Parker',
+          userImg: require('../../assets/img/male.png'),
+
+          isOnline: false,
+          lastSeen: 'Last seen 2 days ago',
+        },
+        {
+          id: '4',
+          username: 'Mary Jane Watson',
+          userImg: require('../../assets/img/male.png'),
+
+          isOnline: true,
+          lastSeen: 'Last seen 1 hour ago',
+        },
+        {
+          id: '5',
+          username: 'Bruce Wayne',
+          userImg: require('../../assets/img/male.png'),
+
+          isOnline: false,
+          lastSeen: 'Last seen last week',
+        },
+      ];
+      
+
+
+
     return (
         <SafeAreaView style={{ flex: 1 }}>
             <View style={{ flex: 1 }}>
@@ -147,7 +194,7 @@ const ContactsScreen = ({ navigation }) => {
                     }}
                 >
                     <FlatList
-                        data={filteredUsers}
+                        data={contacts}
                         renderItem={renderItem}
                         keyExtractor={(item) => item.id.toString()}
                     />

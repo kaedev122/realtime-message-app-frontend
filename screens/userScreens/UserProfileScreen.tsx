@@ -21,10 +21,6 @@ const UserProfileScreen = ({ navigation, route }: any) => {
       console.log(error)
     }
   }
-
-  const update = async() => {
-    navigation.navigate("UpdateUserScreen")
-  }
   return (
     <View style={styles.container}>
 
@@ -72,7 +68,6 @@ const UserProfileScreen = ({ navigation, route }: any) => {
           <Text style={styles.menuItemText}>Log out</Text>
         </TouchableOpacity>
 
-        {/* Thêm các mục quản lý khác ở đây */}
       </View>
     </View>
   )
@@ -84,7 +79,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
-    backgroundColor: '#007AFF', // Màu nền header
+    backgroundColor: '#007AFF',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
@@ -92,7 +87,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff', // Màu chữ
+    color: '#fff',
   },
 
 

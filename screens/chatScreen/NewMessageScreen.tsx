@@ -17,6 +17,7 @@ export default function ImagePickerExample() {
         console.log(result);
 
         if (!result.canceled) {
+            // @ts-ignore
             setImage(result.assets[0].uri);
         }
     };
