@@ -1,5 +1,5 @@
 import axios from "axios"
-import { MessageBody } from "./interfaces/IMessage"
+import { MessageBody, NewChatBody } from "./interfaces/IMessage"
 
 const BASE_URL = 'https://realtime-message-app-backend.vercel.app/api';
 
@@ -29,4 +29,15 @@ export const sendMessageAPI = ({ sender, text, conversationId }: MessageBody) =>
         },
     })
     return res
+}
+
+export const loginApi = ({ senderId, receiverId }: NewChatBody) => {
+    return axios({
+        method: "POST",
+        url: BASE_URL.concat("/chat/c"),
+        data: {
+            senderId: senderId,
+            receiverId: receiverId
+        },
+    })
 }

@@ -30,49 +30,50 @@ const ChatScreen = ({ navigation, route }: any) => {
     };
 
     const renderConversationItem = ({ item }: any) => {
-        let receiver = {}
-        // console.log(item.members[0]._id)
-        // console.log(userData._id)
-
-        if (item.members[0]._id == userData._id) {
-            receiver = item.members[1]
-        } else {
-            receiver = item.members[0]
+        const members = item.members.filter(member => member._id != userData._id);
+        const numMembers = members.length
+        let conversationImage = 'https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png'
+        if (numMembers > 1) {
+            conversationImage = 'https://github.com/kaedev122/realtime-message-app-frontend/blob/huybe/assets/img/group.png?raw=true'
+        } else if (numMembers > 0) {
+            conversationImage = members[0]?.profilePicture || conversationImage
         }
-        const conversationImage = receiver?.profilePicture ? `${receiver?.profilePicture}` : `https://cdn-icons-png.flaticon.com/512/847/847969.png`
+        //  console.log(conversationImage)
 
         return (
             <TouchableOpacity style={styles.conversation} onPress={() => {
                 navigation.navigate('MessageScreen', {
                     userData: userData,
                     conversationId: item._id,
-                    member1: item.members[0],
-                    member2: item.members[1],
+                    members: members,
+                    conversationImage: conversationImage,
                 });
             }}>
                 <Image
                     style={styles.conversationImage}
-                    source={{
-                        uri: conversationImage
-                    }}
+                    source={{ uri: conversationImage }}
                 />
                 <View style={{
                     borderBottomColor: "#dedad5",
                     borderBottomWidth: 1,
                     width: "100%"
                 }}>
-                    <Text style={{ fontSize: 20 }}>{receiver?.username}</Text>
+                    <Text style={{ fontSize: 20 }}>{members.map(member => member.username).join(', ')}</Text>
                     <Text style={{ fontSize: 13, color: "gray" }}>{item?.text}</Text>
                 </View>
             </TouchableOpacity>
         );
     }
-
-    const handleSearch = (searchText: string) => {
-        const filteredConversation = conversation.filter((item) =>
-            item?.members[1].username.toLowerCase().includes(searchText.toLowerCase())
+    const handleSearch = (textSearch: string) => {
+        const result = conversation.filter((item) => {
+            const memberNames = item.members.map(
+                (member) => member.username
+            )
+            const combinedNames = memberNames.join(' ').toLowerCase();
+            return combinedNames.includes(textSearch.toLowerCase());
+        }
         );
-        setDataSearch(filteredConversation);
+        setDataSearch(result);
     };
 
     useEffect(() => {
@@ -89,10 +90,12 @@ const ChatScreen = ({ navigation, route }: any) => {
             <View style={styles.heading}>
                 <View style={styles.header}>
                     <Text style={{ fontSize: 20, fontWeight: "bold" }} >Đoạn chat </Text>
-                    <Entypo style={{ position: "absolute", right: 20 }} onPress={() => {
-                        navigation.navigate("NewMessageScreen");
-                    }}
-                        name="new-message" size={25} color="#428DFE" />
+                    <TouchableOpacity
+                        style={{ position: "absolute", right: 20, width: 30, height: 30 }}
+                        onPress={() => { navigation.navigate("NewChat"); }}
+                    >
+                        <Entypo name="new-message" size={25} color="#428DFE" />
+                    </TouchableOpacity>
                 </View>
                 <View style={{ width: "95%", flexDirection: "row", alignItems: "center" }}>
                     {/* <Ionicons
