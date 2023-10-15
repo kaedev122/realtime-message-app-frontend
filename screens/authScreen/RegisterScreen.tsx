@@ -70,13 +70,15 @@ const RegisterScreen = ({ navigation }: any) => {
                 })
                 const { data } = signupResponse
                 console.log(data)
-                alert("Đăng ký thành công!")
+                showToast("success", "Đăng ký thành công!")
+
                 setTimeout(() => {
                     navigation.replace("LoginScreen")
                 }, 3000)
             } catch (err) {
                 const { data } = err.response
-                alert("Email đã tồn tại!")
+                showToast("error", "Email đã tồn tại!")
+
             }
         } else {
             showToast("error", "Vui lòng nhập đủ thông tin!")
@@ -183,7 +185,7 @@ const RegisterScreen = ({ navigation }: any) => {
                     <View style={styles.another}>
                         <Text style={{ fontSize: 17 }}> Đã có tài khoản?</Text>
                         <TouchableOpacity onPress={() => {
-                            navigation.navigate("LoginScreen")
+                            navigation.goBack()
                         }}>
                             <Text style={styles.loginLabel} >Đăng nhập</Text>
                         </TouchableOpacity>

@@ -16,6 +16,7 @@
     "axios": "^1.5.0",
     "bluebird": "^3.7.2",
     "expo": "~49.0.8",
+    "expo-image-picker": "~14.3.2",
     "expo-linear-gradient": "~12.3.0",
     "expo-secure-store": "~12.3.1",
     "expo-status-bar": "~1.6.0",
@@ -24,6 +25,7 @@
     "moment": "^2.29.4",
     "react": "18.2.0",
     "react-native": "0.72.5",
+    "react-native-gifted-chat": "^2.4.0",
     "react-native-image-picker": "^7.0.0",
     "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-keyboard-manager": "^6.5.11-2",
@@ -35,8 +37,7 @@
     "react-native-vector-icons": "^10.0.0",
     "react-navigation": "^4.4.4",
     "react-navigation-stack": "^2.10.4",
-    "yup": "^1.2.0",
-    "expo-image-picker": "~14.3.2"
+    "yup": "^1.2.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

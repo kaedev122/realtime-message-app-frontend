@@ -52,6 +52,7 @@ const LoginScreen = ({ navigation }: any) => {
             if (accessToken) {
                 addTokenToAxios(accessToken)
                 const userData = await getUserData()
+                console.log(userData)
                 navigation.navigate("HomeTabs", { userData: userData })
             }
         } catch (error) {
@@ -66,12 +67,17 @@ const LoginScreen = ({ navigation }: any) => {
                     "email": email,
                     "password": password
                 })
+
                 const { data } = loginResponse
+                console.log(data.success)
+                if (data.success === false) {
+                    showToast("error", "Thông tin không đúng!")
+                }
                 const result = await setAccessToken(data?.token)
+                console.log("AccessToken", result)
                 checkAuthenticated();
-            } catch (err) {
-                const { data } = err.response
-                alert(data.message)
+            } catch (error) {
+                alert(error)
             }
         } else {
             showToast("error", "Vui lòng nhập đủ thông tin!")

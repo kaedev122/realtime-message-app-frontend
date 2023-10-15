@@ -3,3 +3,8 @@ export interface MessageBody {
     sender: string
     text: string
 }
+
+export interface NewChatBody {
+    senderId: string,
+    receiverId: string
+}

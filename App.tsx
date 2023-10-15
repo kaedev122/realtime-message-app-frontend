@@ -16,7 +16,7 @@ import ContactsScreen from './screens/ContactsScreen';
 ///
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
-import NewMessageScreen from './screens/chatScreen/NewMessageScreen';
+import NewChat from './screens/chatScreen/NewChat';
 ///
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -88,7 +88,7 @@ const App = () => {
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
         <Stack.Screen name="MessageScreen" component={MessageScreen} />
-        <Stack.Screen name="NewMessageScreen" component={NewMessageScreen} />
+        <Stack.Screen name="NewChat" component={NewChat} />
         <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
         <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
       </Stack.Navigator>

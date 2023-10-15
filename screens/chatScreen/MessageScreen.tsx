@@ -1,77 +1,86 @@
-import React, { useState, useEffect } from 'react'
-import { getMessageOfConversationApi, sendMessageAPI } from '../../services/ChatService'
-import { Image, StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity } from 'react-native'
+import React, { useState, useEffect, useCallback } from 'react';
+import { getMessageOfConversationApi, sendMessageAPI } from '../../services/ChatService';
+import {
+    Image,
+    StyleSheet,
+    Text,
+    View,
+    TextInput,
+    Dimensions,
+    FlatList,
+    TouchableOpacity,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialIcons } from '@expo/vector-icons';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { GiftedChat } from 'react-native-gifted-chat'
 import moment from 'moment';
 import * as ImagePicker from 'expo-image-picker';
-const windownWidth = Dimensions.get('window').width
-const windownHeight = Dimensions.get('window').height
 
 const MessageScreen = ({ route, navigation }: any) => {
-    const { userData } = route.params
-    const { conversationId, member1, member2 } = route.params;
+    const { userData, conversationId, members, conversationImage } = route.params;
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [receiverData, setReceiverData] = useState({});
     const [message, setMessage] = useState([]);
-    const [newMessage, setNewMessage] = useState<string>('')
-    const [selectedImage, setSelectedImage] = useState('');
+    const [newMessage, setNewMessage] = useState<string>('');
 
     useEffect(() => {
-        if (member1._id == userData._id) {
-            setReceiverData(member2)
-        } else {
-            setReceiverData(member1)
-        }
-        getMessageOfConversation(conversationId)
-    }, [])
+        getMessageOfConversation(conversationId);
+
+    }, []);
 
     const getMessageOfConversation = async (conversationId: string) => {
         setIsLoading(true);
         try {
             const res = await getMessageOfConversationApi(conversationId);
             const { data } = res;
-            setMessage(data)
+            setMessage(data);
         } catch (error) {
-            alert(error)
+            alert(error);
         }
         setIsLoading(false);
-    }
+    };
+
     const renderMessageItem = ({ item, index }) => {
         const shouldDisplayCreatedAt = shouldDisplayDay(index);
+        const senderInfo = members.find(member => member._id === item.sender._id);
+        const senderName = senderInfo ? senderInfo.username : null;
+        const isUserDataSender = item.sender._id === userData._id;
+        const senderNameStyle = [styles.senderName, {
+            alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
+        }];
+        let showSenderName = false;
+        if (index === 0 || item.sender._id !== message[index - 1].sender._id) {
+            showSenderName = true;
+        }
         return (
             <View>
                 <View style={{ alignItems: "center" }}>
                     {shouldDisplayCreatedAt &&
-                        <Text style={{
-                            textAlign: "center",
-                            color: "white",
-                            backgroundColor: "#adacaa",
-                            borderRadius: 50,
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
-                            fontSize: 13
-                        }}>
+                        <Text style={styles.createdAtText}>
                             {createdAtDay(item?.createdAt)}
                         </Text>}
                 </View>
-                <TouchableOpacity onPress={() => console.log(item?.sender._id)} style={[styles.messageContainer,
-                {
-                    alignSelf: item?.sender._id === userData._id ? 'flex-end' : 'flex-start',
-                    backgroundColor: item?.sender._id == userData._id ? "#DCF8C6" : '#fff'
-                },
-
-                ]}>
+                {showSenderName && (
+                    <Text style={senderNameStyle}>{senderName}</Text>
+                )}
+                <TouchableOpacity
+                    style={[
+                        styles.messageContainer,
+                        {
+                            alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
+                            backgroundColor: isUserDataSender ? "#DCF8C6" : '#fff',
+                        },
+                    ]}
+                >
                     <Text style={styles.messageText}>{item?.text}</Text>
-                    <Text style={styles.time}>
+                    <Text style={styles.timeText}>
                         {timeInMessage(item?.createdAt)}
                     </Text>
                 </TouchableOpacity>
             </View>
         );
-    }
+    };
 
     let lastDisplayedDate = null;
     const shouldDisplayDay = (index) => {
@@ -99,118 +108,36 @@ const MessageScreen = ({ route, navigation }: any) => {
         const yesterday = moment().startOf('day').subtract(1, 'days');
 
         if (momentCreatedAt.isSameOrAfter(today)) {
-            return 'Hôm nay'
+            return 'Hôm nay';
         } else if (momentCreatedAt.isSameOrAfter(yesterday)) {
-            return 'Hôm qua'
+            return 'Hôm qua';
         } else {
             return momentCreatedAt.format('DD/MM/YYYY');
         }
-    }
-    const timeInMessage = (createdAt) => {
-        return moment(createdAt).format('HH:mm');
-    }
-
-    const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            aspect: [4, 3],
-            quality: 1,
-        });
-
-        console.log(result);
-
-        if (!result.canceled) {
-            sendMessage('image', result.assets[0].uri);
-        }
     };
 
-    // const sendMessage = async () => {
-    //     setNewMessage(newMessage.trim())
-    //     if (newMessage.trim() === '') return
-    //     try {
-    //         const newMessageObject = {
-    //             conversationId: conversationId,
-    //             text: newMessage,
-    //             sender: userData._id
-    //         };
-    //         console.log("newMessageObject", newMessageObject)
-    //         const messageResponse = await sendMessageAPI(newMessageObject)
-    //         console.log(messageResponse.status)
-    //         const { data } = messageResponse
-    //         console.log(data)
-    //         setMessage((prevMessages) => [...prevMessages, data])
-    //         setNewMessage('');
-    //     } catch (err) {
-    //         alert(err)
-    //     }
-    // }
-    const sendMessage = async (messageType, messageContent) => {
-        setNewMessage(newMessage.trim());
-        if (newMessage.trim() === '' && !messageContent) return;
+    const timeInMessage = (createdAt) => {
+        return moment(createdAt).format('HH:mm');
+    };
 
+    const sendMessage = async () => {
+        setNewMessage(newMessage.trim());
+        if (newMessage.trim() === '') return;
         try {
             const newMessageObject = {
                 conversationId: conversationId,
                 text: newMessage,
-                sender: userData._id,
-                imageUrl: selectedImage
+                sender: userData._id
             };
-
-            if (messageType === "image" && messageContent) {
-                newMessageObject.imageUrl = messageContent;
-            }
-
-            console.log("newMessageObject", newMessageObject);
             const messageResponse = await sendMessageAPI(newMessageObject);
-            console.log(messageResponse.status);
             const { data } = messageResponse;
-            console.log(data);
-            setMessage([...message, newMessageObject]);
+            setMessage([...message, data]);
             setNewMessage('');
-
-            // Nếu bạn muốn đặt lại hình ảnh đã chọn sau khi gửi
-            setSelectedImage("");
         } catch (err) {
             alert(err);
         }
     }
-    // const handleSend = async (messageType, imageUri) => {
-    //     setNewMessage(newMessage.trim())
-    //     try {
-    //         // const formData = new FormData();
-    //         // formData.append("sender", userData._id);
-    //         // formData.append("conversationId", conversationId);
-    //         const newMessageObject = {
-    //             conversationId: conversationId,
-    //             text: newMessage,
-    //             sender: userData._id
-    //         };
-    //         //if the message type id image or a normal text
-    //         if (messageType === "image") {
-    //             newMessageObject.append("messageType", "image");
-    //             formData.append("imageFile", {
-    //                 uri: imageUri,
-    //                 name: "image.jpg",
-    //                 type: "image/jpeg",
-    //             });
-    //         } else {
-    //             formData.append("text", newMessage);
-    //         }
 
-    //         const messageResponse = await sendMessageAPI(newMessageObject)
-
-    //         if (messageResponse.status === 200) {
-    //             setMessage("");
-    //             setSelectedImage("");
-
-    //             fetchMessages();
-    //         }
-    //     } catch (error) {
-    //         console.log("error in sending the message", error);
-    //     }
-    // };
 
     return (
         <View style={styles.container}>
@@ -218,19 +145,31 @@ const MessageScreen = ({ route, navigation }: any) => {
                 <View style={styles.header}>
                     <Ionicons style={{ left: 10, position: "absolute" }} name="arrow-back-outline" size={35}
                         onPress={() => { navigation.navigate("HomeTabs", { name: 'FriendScreen' }) }} />
-                    <Text style={{ fontSize: 25, fontWeight: "bold" }} >{receiverData?.username}</Text>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <Image
+                            style={styles.conversationImage}
+                            source={{ uri: conversationImage }}
+                        />
+                        <Text style={styles.headerText}>
+                            {members.map(member => member.username).join(', ')}
+                        </Text>
+                    </View>
+
                 </View>
             </View>
             <View style={styles.flatListContainer}>
                 <FlatList
+                    initialNumToRender={message.length}
                     onRefresh={() => getMessageOfConversation(conversationId)}
                     refreshing={isLoading}
-                    data={message}
                     renderItem={(item) => renderMessageItem(item)}
+                    data={message}
+                // inverted
                 />
             </View>
+
             <View style={styles.footer}>
-                <TouchableOpacity onPress={pickImage} style={styles.icon}>
+                <TouchableOpacity style={styles.icon}>
                     <MaterialIcons name="insert-photo" size={30} color="gray" />
                 </TouchableOpacity>
                 <TextInput
@@ -245,17 +184,17 @@ const MessageScreen = ({ route, navigation }: any) => {
                 />
                 <TouchableOpacity
                     style={styles.icon}
-                    onPress={() => sendMessage}
+                    onPress={sendMessage}
                 >
                     <MaterialIcons name="send" size={30} color="blue" />
                 </TouchableOpacity>
             </View>
             <StatusBar style="dark" />
         </View>
-    )
-}
+    );
+};
 
-export default MessageScreen
+export default MessageScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -275,27 +214,41 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         width: "100%",
     },
+    headerText: {
+        fontSize: 20,
+        fontWeight: "bold"
+    },
+    conversationImage: {
+        width: 50,
+        height: 50,
+        borderRadius: 50,
+        marginRight: 10
+    },
     flatListContainer: {
-        justifyContent: "flex-end",
+        flex: 1,
         padding: 10,
         backgroundColor: "#f3f4fb",
-        flex: 1,
+        flexDirection: "column-reverse"
     },
     messageContainer: {
         padding: 8,
         borderRadius: 10,
-        margin: 10,
+        margin: 5,
         maxWidth: '70%',
         borderColor: "#d4d5d6",
-        borderWidth: 1
+        borderWidth: 1,
+    },
+    senderName: {
+        fontSize: 14,
+        color: "gray",
     },
     messageText: {
-        fontSize: 15,
+        fontSize: 16,
     },
-    time: {
+    timeText: {
         fontSize: 11,
         color: "gray",
-        textAlign: "left"
+        textAlign: "left",
     },
     footer: {
         flexDirection: 'row',
@@ -304,6 +257,16 @@ const styles = StyleSheet.create({
         marginBottom: 50,
         borderTopColor: '#dedede',
         borderTopWidth: 1,
+    },
+    createdAtText: {
+        textAlign: "center",
+        color: "white",
+        backgroundColor: "#adacaa",
+        borderRadius: 50,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        fontSize: 13,
+        margin: 10,
     },
     messageInput: {
         width: "70%",
@@ -316,6 +279,6 @@ const styles = StyleSheet.create({
     icon: {
         paddingHorizontal: 10,
         flex: 1,
-        padding: 10
+        padding: 10,
     },
 });
