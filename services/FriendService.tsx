@@ -1,20 +1,28 @@
 import axios from "axios"
-import {FriendBody} from "./interfaces/IFriend";
 
 const BASE_URL = 'https://realtime-message-app-backend.vercel.app/api';
 
 export const getAllFriendApi = () => {
-    const getAllFriendRequest = axios({
+    return axios({
         method: "GET",
         url: BASE_URL.concat("/friend/listfriends"),
     });
-    return getAllFriendRequest;
 };
 
 export const getRandomFriendApi = () => {
-    const getRandomFriendRequest = axios({
+    return axios({
         method: "GET",
         url: BASE_URL.concat("/friend/random"),
     });
-    return getRandomFriendRequest;
 };
+
+export const getFriendByNameApi = (username: string) => {
+    console.log(username)
+    const input = {'username': username }
+    return  axios({
+        method: "GET",
+        url: BASE_URL.concat("/friend/find"),
+        data:  input,
+    });
+};
+
