@@ -11,12 +11,14 @@ import LoginScreen from './screens/authScreen/LoginScreen'
 ///
 import ChatScreen from './screens/chatScreen/ChatScreen';
 import MessageScreen from './screens/chatScreen/MessageScreen';
+import NewChat from './screens/chatScreen/NewChat';
 ///
-import ContactsScreen from './screens/ContactsScreen';
+import SearchFriendScreen from './screens/friendScreen/SearchFriendScreen';
+import FriendScreen from "./screens/friendScreen/FriendScreen";
 ///
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
-import NewChat from './screens/chatScreen/NewChat';
+
 ///
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -54,22 +56,34 @@ const TabNavigator = ({ navigation, route }: any) => {
       />
       <Tab.Screen
         name="ContactsScreen"
-        component={ContactsScreen}
+        component={SearchFriendScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <Ionicons name={focused ? 'md-people' : 'md-people-outline'} size={25} />
+              <Ionicons name={focused ? 'search' : 'search-outline'} size={24}  />
           ),
         }}
         initialParams={{
           userData
         }}
       />
+        <Tab.Screen
+            name="FriendScreen"
+            component={FriendScreen}
+            options={{
+                tabBarIcon: ({ focused }) => (
+                    <Ionicons name={focused ? 'md-people' : 'md-people-outline'} size={25} />
+                ),
+            }}
+            initialParams={{
+                userData
+            }}
+        />
       <Tab.Screen
         name="Setting"
         component={UserProfileScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <FontAwesome name={focused ? 'user' : 'user-o'} size={25} />
+            <FontAwesome name={focused ? 'user' : 'user-o'} size={24} />
           ),
         }}
         initialParams={{
@@ -85,12 +99,18 @@ const App = () => {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
         <Stack.Screen name="HomeTabs" component={TabNavigator} />
+
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+
         <Stack.Screen name="MessageScreen" component={MessageScreen} />
         <Stack.Screen name="NewChat" component={NewChat} />
+
         <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
         <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
+
+        <Stack.Screen name="SearchFriendScreen" component={SearchFriendScreen} />
+          <Stack.Screen name="FriendScreen" component={FriendScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
