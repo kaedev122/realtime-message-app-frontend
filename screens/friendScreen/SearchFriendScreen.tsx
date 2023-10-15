@@ -10,26 +10,30 @@ import {
     TextInput,
     Dimensions,
     StyleSheet,
-    Button
+    Button,
 } from "react-native";
-import { getFriendByNameApi, getRandomFriendApi } from "../../services/FriendService";
+import {addFriendApi, getFriendByNameApi, getRandomFriendApi} from "../../services/FriendService";
 
-const windownWidth = Dimensions.get('window').width
-const windownHeight = Dimensions.get('window').height
+const windownWidth = Dimensions.get('window').width;
+const windownHeight = Dimensions.get('window').height;
 
 const SearchFriendScreen = ({ route }: any) => {
     const { userData } = route.params;
+    const {user}= route.params;
     const [randomFriends, setRandomFriends] = useState([]);
+    const [listFriend, setListFriend] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchResults, setSearchResults] = useState([]);
     const [searchValue, setSearchValue] = useState("");
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isModalVisible, setModalVisible] = useState(false);
 
     const getRandomFriend = async () => {
         setIsLoading(true);
         try {
             const listData = await getRandomFriendApi();
             const { data } = listData;
-            setRandomFriends(data.result);
+            setListFriend(data.result);
         } catch (error: any) {
             alert(error.response);
         }
@@ -42,16 +46,13 @@ const SearchFriendScreen = ({ route }: any) => {
 
     const searchFriends = async () => {
         setIsLoading(true);
-        console.log(searchValue)
         try {
             if (searchValue === "") {
-                const listData = await getRandomFriendApi();
-                const { data } = listData;
-                setSearchResults(data.result);
+                return;
             } else {
-                const response = await getFriendByNameApi(searchValue);
+                const response = await getFriendByNameApi({ username: searchValue });
                 const { data } = response;
-                setSearchResults(data.usersData);
+                setListFriend(data.usersData);
             }
         } catch (error) {
             console.error("Lỗi khi tìm kiếm:", error);
@@ -60,10 +61,25 @@ const SearchFriendScreen = ({ route }: any) => {
         }
     };
 
+    const addFriend = async (id: string) => {
+        console.log(id)
+        try {
+            const response = await addFriendApi(id);
+            if (response.status === 200) {
+                console.log("Kết bạn thành công!");
+                // Tùy chỉnh hoặc hiển thị thông báo, cập nhật trạng thái, vv.
+            }
+        } catch (error) {
+            console.error("Lỗi khi kết bạn:", error);
+        }
+    };
+
     const renderFriendItem = ({ item }: any) => {
         return (
             <TouchableOpacity
                 onPress={() => {
+                    setSelectedUser(item);
+                    toggleModal();
                 }}
                 style={{
                     width: "100%",
@@ -99,6 +115,10 @@ const SearchFriendScreen = ({ route }: any) => {
                 </View>
             </TouchableOpacity>
         );
+    };
+
+    const toggleModal = () => {
+        setModalVisible(!isModalVisible);
     };
 
     return (
@@ -140,11 +160,30 @@ const SearchFriendScreen = ({ route }: any) => {
                     <FlatList
                         onRefresh={getRandomFriend}
                         refreshing={isLoading}
-                        data={searchResults.length > 0 ? searchResults : randomFriends}
+                        data={listFriend}
                         renderItem={renderFriendItem}
                     />
                 </View>
             </View>
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={isModalVisible}
+                onRequestClose={toggleModal}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <View>
+                            <Text style={styles.modalText}>Thông tin người dùng</Text>
+                            <Text style={styles.modalText}>{selectedUser.username}</Text>
+                            <Text style={styles.modalText}>{selectedUser.email}</Text>
+                        </View>
+                        <Button title="Kết bạn" onPress={() => {addFriend(selectedUser._id) }} />
+                        <Button title="Bắt đầu cuộc trò chuyện" onPress={() => {  }} />
+                        <Button title="Đóng" onPress={toggleModal} />
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 };
@@ -189,5 +228,24 @@ const styles = StyleSheet.create({
     conversation: {
         paddingVertical: 5,
         flexDirection: "row"
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalContent: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        padding: 20,
+        width: windownWidth * 0.8,
+        maxHeight: windownHeight * 0.5,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalText: {
+        fontSize: 20,
+        color: "black",
+        marginBottom: 10,
     },
 });

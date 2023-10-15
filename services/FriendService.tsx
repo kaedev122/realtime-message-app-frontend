@@ -16,13 +16,20 @@ export const getRandomFriendApi = () => {
     });
 };
 
-export const getFriendByNameApi = (username: string) => {
-    console.log(username)
-    const input = {'username': username }
+export const getFriendByNameApi = (input: { username: string }) => {
     return  axios({
         method: "GET",
         url: BASE_URL.concat("/friend/find"),
-        data:  input,
+        data: {username:input},
     });
 };
+
+export const addFriendApi = (id: string) => {
+    return axios({
+        method: "PUT",
+        url: BASE_URL.concat(`/friend/${id}/addfriend`),
+    });
+};
+
+
 
