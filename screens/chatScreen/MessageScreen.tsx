@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { getMessageOfConversationApi, sendMessageAPI } from '../../services/ChatService';
 import {
     Image,
@@ -23,6 +23,22 @@ const MessageScreen = ({ route, navigation }: any) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [message, setMessage] = useState([]);
     const [newMessage, setNewMessage] = useState<string>('');
+
+    const scrollViewRef = useRef(null);
+
+    useEffect(() => {
+        scrollToBottom()
+    }, []);
+
+    const scrollToBottom = () => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollToEnd({ animated: true })
+        }
+    }
+
+    const handleContentSizeChange = () => {
+        scrollToBottom();
+    }
 
     useEffect(() => {
         getMessageOfConversation(conversationId);
@@ -137,7 +153,40 @@ const MessageScreen = ({ route, navigation }: any) => {
             alert(err);
         }
     }
+    // const handleSend = async (messageType, imageUri) => {
+    //     try {
+    //         const formData = new FormData();
+    //         formData.append("senderId", userId);
+    //         formData.append("recepientId", recepientId);
 
+    //         //if the message type id image or a normal text
+    //         if (messageType === "image") {
+    //             formData.append("messageType", "image");
+    //             formData.append("imageFile", {
+    //                 uri: imageUri,
+    //                 name: "image.jpg",
+    //                 type: "image/jpeg",
+    //             });
+    //         } else {
+    //             formData.append("messageType", "text");
+    //             formData.append("messageText", message);
+    //         }
+
+    //         const response = await fetch("http://localhost:8000/messages", {
+    //             method: "POST",
+    //             body: formData,
+    //         });
+
+    //         if (response.ok) {
+    //             setMessage("");
+    //             setSelectedImage("");
+
+    //             fetchMessages();
+    //         }
+    //     } catch (error) {
+    //         console.log("error in sending the message", error);
+    //     }
+    // };
 
     return (
         <View style={styles.container}>
@@ -159,6 +208,9 @@ const MessageScreen = ({ route, navigation }: any) => {
             </View>
             <View style={styles.flatListContainer}>
                 <FlatList
+                    ref={scrollViewRef}
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    onContentSizeChange={handleContentSizeChange}
                     initialNumToRender={message.length}
                     onRefresh={() => getMessageOfConversation(conversationId)}
                     refreshing={isLoading}
