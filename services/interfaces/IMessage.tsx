@@ -8,3 +8,7 @@ export interface NewChatBody {
     senderId: string,
     receiverId: string
 }
+export interface NewGroupChatBody {
+    members: [string]
+
+}
