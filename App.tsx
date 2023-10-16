@@ -13,12 +13,11 @@ import ChatScreen from './screens/chatScreen/ChatScreen';
 import MessageScreen from './screens/chatScreen/MessageScreen';
 import NewChat from './screens/chatScreen/NewChat';
 ///
-import SearchFriendScreen from './screens/friendScreen/SearchFriendScreen';
+import SearchScreen from './screens/friendScreen/SearchScreen';
 import FriendScreen from "./screens/friendScreen/FriendScreen";
 ///
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
-import NewGroupChat from './screens/chatScreen/NewGroupChat';
 
 ///
 const Stack = createStackNavigator();
@@ -57,28 +56,28 @@ const TabNavigator = ({ navigation, route }: any) => {
       />
       <Tab.Screen
         name="ContactsScreen"
-        component={SearchFriendScreen}
+        component={SearchScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <Ionicons name={focused ? 'search' : 'search-outline'} size={24} />
+              <Ionicons name={focused ? 'search' : 'search-outline'} size={24}  />
           ),
         }}
         initialParams={{
           userData
         }}
       />
-      <Tab.Screen
-        name="FriendScreen"
-        component={FriendScreen}
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <Ionicons name={focused ? 'md-people' : 'md-people-outline'} size={25} />
-          ),
-        }}
-        initialParams={{
-          userData
-        }}
-      />
+        <Tab.Screen
+            name="FriendScreen"
+            component={FriendScreen}
+            options={{
+                tabBarIcon: ({ focused }) => (
+                    <Ionicons name={focused ? 'md-people' : 'md-people-outline'} size={25} />
+                ),
+            }}
+            initialParams={{
+                userData
+            }}
+        />
       <Tab.Screen
         name="Setting"
         component={UserProfileScreen}
@@ -106,13 +105,12 @@ const App = () => {
 
         <Stack.Screen name="MessageScreen" component={MessageScreen} />
         <Stack.Screen name="NewChat" component={NewChat} />
-        <Stack.Screen name="NewGroupChat" component={NewGroupChat} />
 
         <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
         <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
 
-        <Stack.Screen name="SearchFriendScreen" component={SearchFriendScreen} />
-        <Stack.Screen name="FriendScreen" component={FriendScreen} />
+        <Stack.Screen name="SearchScreen" component={SearchScreen} />
+          <Stack.Screen name="FriendScreen" component={FriendScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
