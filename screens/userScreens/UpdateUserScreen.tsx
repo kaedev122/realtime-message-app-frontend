@@ -33,7 +33,8 @@ const UpdateUserScreen = ({route}: any) => {
     <View style={styles.container}>
       <View style={styles.userImage}>
         <TouchableOpacity>
-          <Image style={styles.mainImage} source={require('../../assets/img/profile.png')} />
+          <Image style={styles.mainImage}                source={ {uri: userData.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4"}}
+          />
         </TouchableOpacity>
       </View>
 
