@@ -23,6 +23,9 @@ const FriendScreen = ({route} :any) => {
     const [friends, setFriends] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
 
+
+
+
     const getAllFriend = async () => {
         setIsLoading(true);
         try {
@@ -41,8 +44,7 @@ const FriendScreen = ({route} :any) => {
             return (
                 <TouchableOpacity
                     onPress={() => {
-                        setSelectedFriend(item);
-                        setDialogVisible(true);
+
                     }}
                     style={{
                         width: "100%",
@@ -58,7 +60,7 @@ const FriendScreen = ({route} :any) => {
                         }}
                     >
                         <Image
-                            source={item.profilePicture || require("../../assets/img/profile.png")}
+                            source={ {uri: item.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4"}}
                             resizeMode="contain"
                             style={{
                                 height: 50,
@@ -83,54 +85,6 @@ const FriendScreen = ({route} :any) => {
             );
     };
 
-    // const renderDialog = () => {
-    //     return (
-    //         <Modal
-    //             visible={dialogVisible}
-    //             onRequestClose={() => {
-    //                 setDialogVisible(false);
-    //             }}
-    //         >
-    //             <View style={{
-    //                 width: 250,
-    //                 height: 250,
-    //                 backgroundColor: "white",
-    //                 borderRadius: 10,
-    //                 alignItems: "center",
-    //                 justifyContent: "center",
-    //             }}>
-    //                 <Image
-    //                     source={selectedFriend.profilePicture || require("../../assets/img/profile.png")}
-    //                     resizeMode="contain"
-    //                     style={{
-    //                         height: 100,
-    //                         width: 100,
-    //                         borderRadius: 50,
-    //                     }}
-    //                 />
-    //                 <Text style={{
-    //                     fontSize: 20,
-    //                     fontWeight: "bold",
-    //                 }}>{selectedFriend.username}</Text>
-    //                 <Button
-    //                     title="Hủy kết bạn"
-    //                     onPress={() => {
-    //                         // TODO: Thực hiện việc hủy kết bạn
-    //                     }}
-    //                 />
-    //                 <Button
-    //                     title="Đóng"
-    //                     onPress={() => {
-    //                         setDialogVisible(false);
-    //                     }}
-    //                 />
-    //             </View>
-    //         </Modal>
-    //     );
-    // };
-    // const hideDialog = () => {
-    //     setDialogVisible(false);
-    // };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -182,12 +136,7 @@ const FriendScreen = ({route} :any) => {
                     />
                 </View>
             </View>
-            {/*<Modal*/}
-            {/*    visible={dialogVisible}*/}
-            {/*    onRequestClose={hideDialog}*/}
-            {/*>*/}
-            {/*    {renderDialog()}*/}
-            {/*</Modal>*/}
+
         </SafeAreaView>
     );
 };
