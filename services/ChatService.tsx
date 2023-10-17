@@ -18,7 +18,7 @@ export const getMessageOfConversationApi = (id: string) => {
     })
 }
 
-export const sendMessageAPI = ({ sender, text, conversationId }: MessageBody) => {
+export const sendMessageAPI = ({ sender, text, conversationId, image }: MessageBody) => {
     const res = axios({
         method: "POST",
         url: BASE_URL.concat(`/chat/m/`),
@@ -26,6 +26,7 @@ export const sendMessageAPI = ({ sender, text, conversationId }: MessageBody) =>
             conversationId: conversationId,
             sender: sender,
             text: text,
+            image: image
         },
     })
     return res
