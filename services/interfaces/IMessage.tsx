@@ -2,6 +2,7 @@ export interface MessageBody {
     conversationId: string
     sender: string
     text: string
+    image: string
 }
 
 export interface NewChatBody {

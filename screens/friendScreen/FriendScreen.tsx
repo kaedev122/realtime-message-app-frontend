@@ -12,11 +12,11 @@ import {
     StyleSheet,
     Button
 } from "react-native";
-import {getAllFriendApi} from "../../services/FriendService";
+import { getAllFriendApi } from "../../services/FriendService";
 
 const windownWidth = Dimensions.get('window').width
 const windownHeight = Dimensions.get('window').height
-const FriendScreen = ({route} :any) => {
+const FriendScreen = ({ route }: any) => {
     const { userData } = route.params
     const [dialogVisible, setDialogVisible] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
@@ -30,7 +30,7 @@ const FriendScreen = ({route} :any) => {
         setIsLoading(true);
         try {
             const listData = await getAllFriendApi();
-            const {data} = listData;
+            const { data } = listData;
             setFriends(data.friendList);
         } catch (error: any) {
             alert(error.response);
@@ -40,49 +40,49 @@ const FriendScreen = ({route} :any) => {
     useEffect(() => {
         getAllFriend();
     }, []);
-    const renderFriendItem = ({ item }:any) => {
-            return (
-                <TouchableOpacity
-                    onPress={() => {
+    const renderFriendItem = ({ item }: any) => {
+        return (
+            <TouchableOpacity
+                onPress={() => {
 
-                    }}
+                }}
+                style={{
+                    width: "100%",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 22,
+                }}
+            >
+                <View
                     style={{
-                        width: "100%",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingHorizontal: 22,
+                        paddingVertical: 15,
+                        marginRight: 22,
                     }}
                 >
-                    <View
+                    <Image
+                        source={{ uri: item.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4" }}
+                        resizeMode="contain"
                         style={{
-                            paddingVertical: 15,
-                            marginRight: 22,
+                            height: 50,
+                            width: 50,
+                            borderRadius: 25,
                         }}
-                    >
-                        <Image
-                            source={ {uri: item.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4"}}
-                            resizeMode="contain"
-                            style={{
-                                height: 50,
-                                width: 50,
-                                borderRadius: 25,
-                            }}
-                        />
-                    </View>
-                    <View
-                        style={{
-                            flexDirection: "column",
-                        }}
-                    >
-                        <Text style={{color: 'black'}}>
-                            {item.username}
-                        </Text>
-                        {/*<Text style={{fontSize: 14,}}>*/}
-                        {/*    {item.lastSeen}*/}
-                        {/*</Text>*/}
-                    </View>
-                </TouchableOpacity>
-            );
+                    />
+                </View>
+                <View
+                    style={{
+                        flexDirection: "column",
+                    }}
+                >
+                    <Text style={{ color: 'black' }}>
+                        {item.username}
+                    </Text>
+                    {/*<Text style={{fontSize: 14,}}>*/}
+                    {/*    {item.lastSeen}*/}
+                    {/*</Text>*/}
+                </View>
+            </TouchableOpacity>
+        );
     };
 
 
