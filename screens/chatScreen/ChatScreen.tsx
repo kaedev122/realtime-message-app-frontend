@@ -92,7 +92,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                     <Text style={{ fontSize: 20, fontWeight: "bold" }} >Đoạn chat </Text>
                     <TouchableOpacity
                         style={{ position: "absolute", right: 20, width: 30, height: 30 }}
-                        onPress={() => { navigation.navigate("NewChat"); }}
+                        onPress={() => { navigation.navigate("NewGroupChat"); }}
                     >
                         <Entypo name="new-message" size={25} color="#428DFE" />
                     </TouchableOpacity>
@@ -110,13 +110,18 @@ const ChatScreen = ({ navigation, route }: any) => {
                             setTextSearch(value);
                         }}
                     />
-                    <TouchableOpacity
-                        onPress={() => setTextSearch("")}
-                        style={{ justifyContent: "center", width: 30, height: 30, position: "absolute", right: 0, backgroundColor: "#d3d3d3" }}>
+                    {
+                        textSearch &&
 
-                        {textSearch ? <MaterialIcons name="cancel" size={20} /> : null}
+                        <MaterialIcons name="cancel" size={25}
+                            onPress={() => setTextSearch("")}
+                            style={{
+                                position: "absolute",
+                                right: 10,
+                            }}
+                        />
 
-                    </TouchableOpacity>
+                    }
                 </View>
             </View>
             <View style={styles.body}>
@@ -163,7 +168,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 10,
         width: "100%",
-        marginVertical: 10
+        marginVertical: 10,
+        fontSize: 20
     },
     body: {
         width: "100%",
