@@ -24,6 +24,8 @@ export const getFriendByNameApi = (input: { username: string }) => {
     });
 };
 
+
+
 export const addFriendApi = (id: string) => {
     return axios({
         method: "PUT",

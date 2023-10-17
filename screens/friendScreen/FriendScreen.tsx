@@ -9,82 +9,119 @@ import {
     Modal,
     TextInput,
     Dimensions,
-    StyleSheet,
-    Button
+    StyleSheet
 } from "react-native";
-import {getAllFriendApi} from "../../services/FriendService";
+import { getAllFriendApi } from "../../services/FriendService";
+import { AntDesign } from '@expo/vector-icons';
+import { createNewChat } from "../../services/ChatService";
 
 const windownWidth = Dimensions.get('window').width
 const windownHeight = Dimensions.get('window').height
-const FriendScreen = ({route} :any) => {
-    const { userData } = route.params
+
+const FriendScreen = ({ navigation, route }: any) => {
+    const { userData } = route.params;
     const [dialogVisible, setDialogVisible] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
     const [friends, setFriends] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-
-
-
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [conversations, setConversations] = useState([]);
 
     const getAllFriend = async () => {
         setIsLoading(true);
         try {
             const listData = await getAllFriendApi();
-            const {data} = listData;
+            const { data } = listData;
             setFriends(data.friendList);
-        } catch (error: any) {
+        } catch (error) {
             alert(error.response);
         }
-        setIsLoading(false)
+        setIsLoading(false);
     };
+
     useEffect(() => {
         getAllFriend();
     }, []);
-    const renderFriendItem = ({ item }:any) => {
-            return (
-                <TouchableOpacity
-                    onPress={() => {
 
-                    }}
-                    style={{
-                        width: "100%",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        paddingHorizontal: 22,
-                    }}
-                >
-                    <View
-                        style={{
-                            paddingVertical: 15,
-                            marginRight: 22,
-                        }}
-                    >
-                        <Image
-                            source={ {uri: item.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4"}}
-                            resizeMode="contain"
-                            style={{
-                                height: 50,
-                                width: 50,
-                                borderRadius: 25,
-                            }}
-                        />
-                    </View>
-                    <View
-                        style={{
-                            flexDirection: "column",
-                        }}
-                    >
-                        <Text style={{color: 'black'}}>
-                            {item.username}
-                        </Text>
-                        {/*<Text style={{fontSize: 14,}}>*/}
-                        {/*    {item.lastSeen}*/}
-                        {/*</Text>*/}
-                    </View>
-                </TouchableOpacity>
-            );
+    const toggleModal = () => {
+        setModalVisible(!isModalVisible);
     };
 
+    const handleSendMessage = async (senderId, receiverId) => {
+        try {
+            const existingChat = conversations.find(conversation =>
+                conversation.members.some(member => member._id === senderId) &&
+                conversation.members.some(member => member._id === receiverId)
+            );
+
+            if (existingChat) {
+                navigation.navigate('MessageScreen', {
+                    userData: userData,
+                    conversationId: existingChat._id,
+                    members: existingChat.members,
+                    conversationImage: existingChat.conversationImage,
+                });
+            } else {
+                const newChat = await createNewChat({ senderId, receiverId });
+                navigation.navigate('MessageScreen', {
+                    userData: userData,
+                    conversationId: newChat._id,
+                    members: newChat.members,
+                    conversationImage: newChat.conversationImage,
+                });
+            }
+        } catch (error) {
+            console.error("Error handling send message: ", error);
+        }
+    }
+
+
+    const renderFriendItem = ({ item }: any) => {
+        return (
+            <TouchableOpacity
+                onPress={() => {
+                    setSelectedUser(item);
+                    toggleModal();
+                }}
+                style={{
+                    width: "100%",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    paddingHorizontal: 22,
+                }}
+            >
+                <View
+                    style={{
+                        paddingVertical: 15,
+                        marginRight: 22,
+                    }}
+                >
+                    <Image
+                        source={{ uri: item.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4" }}
+                        resizeMode="contain"
+                        style={{
+                            height: 50,
+                            width: 50,
+                            borderRadius: 25,
+                        }}
+                    />
+                </View>
+                <View
+                    style={{
+                        flexDirection: "column",
+                    }}
+                >
+                    <Text style={{ color: 'black' }}>
+                        {item.username}
+                    </Text>
+                    {/*<Text style={{fontSize: 14,}}>*/}
+                    {/*    {item.lastSeen}*/}
+                    {/*</Text>*/}
+                </View>
+            </TouchableOpacity>
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -135,8 +172,47 @@ const FriendScreen = ({route} :any) => {
                         )}
                     />
                 </View>
-            </View>
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={isModalVisible}
+                    onRequestClose={toggleModal}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity
+                                style={styles.closeButton}
+                                onPress={toggleModal}>
+                                <AntDesign name="closesquare" size={24} color="black" />
+                            </TouchableOpacity>
 
+                            <View>
+                                <Text style={styles.modalText}>{selectedUser?.username}</Text>
+                            </View>
+
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity
+                                    style={styles.button}
+                                    onPress={() => {
+                                        handleSendMessage(userData._id, selectedUser._id);
+                                    }}
+                                >
+                                    <Text style={styles.buttonText}>Nhắn tin</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.button, styles.redButton]} // Thêm styles để đổi màu nút
+                                    onPress={() => {
+                                        // Xử lý khi ấn nút Hủy kết bạn
+                                    }}
+                                >
+                                    <Text style={[styles.buttonText, styles.redButtonText]}>Hủy kết bạn</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            </View>
         </SafeAreaView>
     );
 };
@@ -182,4 +258,55 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         flexDirection: "row"
     },
-})
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    modalContent: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        padding: 20,
+        width: windownWidth * 0.8,
+        maxHeight: windownHeight * 0.5,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalText: {
+        fontSize: 20,
+        color: "black",
+        marginBottom: 10,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+    },
+    closeButtonText: {
+        fontSize: 18,
+        color: 'black',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+    },
+    button: {
+        flex: 1,
+        backgroundColor: 'blue', // Màu nền của nút Nhắn tin
+        borderRadius: 10,
+        padding: 10,
+        margin: 5,
+    },
+    redButton: {
+        backgroundColor: 'red', // Màu nền của nút Hủy kết bạn
+    },
+    buttonText: {
+        color: 'white',
+        textAlign: 'center',
+        fontSize: 16,
+    },
+    redButtonText: {
+        // Kiểu dáng cho nút Hủy kết bạn
+    },
+});

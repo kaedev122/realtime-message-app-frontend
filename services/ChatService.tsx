@@ -1,14 +1,20 @@
 import axios from "axios"
-import { MessageBody, NewChatBody, NewGroupChatBody } from "./interfaces/IMessage"
+import {MessageBody, NewChatBody, NewGroupChatBody} from "./interfaces/IMessage"
 
 const BASE_URL = 'https://realtime-message-app-backend.vercel.app/api';
 
 export const getAllConversationApi = () => {
-    const conversations = axios({
+    return axios({
         method: "GET",
         url: BASE_URL.concat(`/chat/c`),
     })
-    return conversations
+}
+
+export const getConversationByIdApi = (id: string) => {
+    return axios({
+        method: "GET",
+        url: BASE_URL.concat(`/chat/c/${id}/${id}`),
+    })
 }
 
 export const getMessageOfConversationApi = (id: string) => {
@@ -19,7 +25,7 @@ export const getMessageOfConversationApi = (id: string) => {
 }
 
 export const sendMessageAPI = ({ sender, text, conversationId }: MessageBody) => {
-    const res = axios({
+    return axios({
         method: "POST",
         url: BASE_URL.concat(`/chat/m/`),
         data: {
@@ -28,7 +34,6 @@ export const sendMessageAPI = ({ sender, text, conversationId }: MessageBody) =>
             text: text,
         },
     })
-    return res
 }
 
 export const createNewChat = ({ senderId, receiverId }: NewChatBody) => {
