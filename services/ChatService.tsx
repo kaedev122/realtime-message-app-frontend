@@ -1,7 +1,7 @@
 import axios from "axios"
 import { MessageBody, NewChatBody, NewGroupChatBody } from "./interfaces/IMessage"
 
-const BASE_URL = 'https://realtime-message-app-backend.vercel.app/api';
+export const BASE_URL = 'https://realtime-message-app-backend.vercel.app/api';
 
 export const getAllConversationApi = () => {
     const conversations = axios({
@@ -18,18 +18,16 @@ export const getMessageOfConversationApi = (id: string) => {
     })
 }
 
-export const sendMessageAPI = ({ sender, text, conversationId, image }: MessageBody) => {
-    const res = axios({
-        method: "POST",
-        url: BASE_URL.concat(`/chat/m/`),
-        data: {
-            conversationId: conversationId,
-            sender: sender,
-            text: text,
-            image: image
-        },
-    })
-    return res
+export const sendMessageAPI = (formData) => {
+    return axios.post(
+        BASE_URL.concat(`/chat/m/`),
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+
 }
 
 export const createNewChat = ({ senderId, receiverId }: NewChatBody) => {
@@ -50,4 +48,14 @@ export const createNewGroupChat = ({ members }: NewGroupChatBody) => {
             members: members
         },
     })
+}
+export const updateConversation = (id: string, group: { groupName: string; groupAvatar: string }) => {
+    return axios({
+        method: "PUT",
+        url: BASE_URL.concat(`/user/profile/${id}`),
+        data: {
+            groupName: group.groupName,
+            groupAvatar: group.groupAvatar
+        }
+    });
 }
