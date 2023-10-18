@@ -32,13 +32,9 @@ const ChatScreen = ({ navigation, route }: any) => {
     const renderConversationItem = ({ item }: any) => {
         const members = item.members.filter(member => member._id != userData._id);
         const numMembers = members.length
-        let conversationImage = 'https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png'
-        if (numMembers > 1) {
-            conversationImage = 'https://github.com/kaedev122/realtime-message-app-frontend/blob/huybe/assets/img/group.png?raw=true'
-        } else if (numMembers > 0) {
-            conversationImage = members[0]?.profilePicture || conversationImage
-        }
-        //  console.log(conversationImage)
+        const memberImages = members.map(member => member.profilePicture)
+        let conversationImage = 'https://github.com/kaedev122/realtime-message-app-frontend/blob/huybe/assets/img/profileClone.jpg?raw=true'
+        const memberProfilePictures = memberImages.map(image => image || conversationImage);
 
         return (
             <TouchableOpacity style={styles.conversation} onPress={() => {
@@ -46,13 +42,66 @@ const ChatScreen = ({ navigation, route }: any) => {
                     userData: userData,
                     conversationId: item._id,
                     members: members,
-                    conversationImage: conversationImage,
+                    isGroup: item.group,
+                    conversationImage: memberProfilePictures,
                 });
             }}>
-                <Image
-                    style={styles.conversationImage}
-                    source={{ uri: conversationImage }}
-                />
+                <View>
+                    {numMembers > 1
+                        ? (
+                            <View style={styles.conversationImage}>
+                                <View style={{
+                                    flex: 1,
+                                    padding: 1,
+                                }}>
+                                    <Image
+                                        source={{ uri: userData.profilePicture || conversationImage }}
+                                        style={{
+                                            right: 0, top: 20,
+                                            width: 40, height: 40,
+                                            resizeMode: "cover",
+                                            borderRadius: 30,
+                                            borderColor: "#f3f4fb",
+                                            borderWidth: 2
+                                        }}
+                                    />
+                                </View>
+
+
+                                <View style={{
+                                    flex: 1,
+                                    padding: 1,
+                                }}>
+                                    <Image
+                                        source={{ uri: memberImages[0] || conversationImage }}
+                                        style={{
+                                            right: 10, bottom: 0,
+                                            width: 40, height: 40,
+                                            resizeMode: "cover",
+                                            borderRadius: 30,
+                                            borderColor: "#f3f4fb",
+                                            borderWidth: 2
+                                        }}
+                                    />
+                                </View>
+                            </View>
+                        ) : (
+                            <View style={styles.conversationImage}>
+                                <View style={{
+                                    flex: 1,
+                                    padding: 1,
+                                }}>
+                                    <Image
+                                        source={{ uri: memberImages[0] || conversationImage }}
+                                        style={{
+                                            width: "100%", height: "100%", borderRadius: 30
+                                        }}
+                                    />
+                                </View>
+                            </View>
+                        )
+                    }
+                </View>
                 <View style={{
                     borderBottomColor: "#dedad5",
                     borderBottomWidth: 1,
@@ -64,6 +113,7 @@ const ChatScreen = ({ navigation, route }: any) => {
             </TouchableOpacity>
         );
     }
+
     const handleSearch = (textSearch: string) => {
         const result = conversation.filter((item) => {
             const memberNames = item.members.map(
@@ -140,19 +190,32 @@ const ChatScreen = ({ navigation, route }: any) => {
 export default ChatScreen
 
 const styles = StyleSheet.create({
+    // conversationImage: {
+    //     flex: 1,
+    //     flexDirection: 'row',
+    // },
+    imageContainer: {
+        flex: 1,
+        padding: 2,
+    },
+    image: {
+        width: "100%",
+        height: "100%",
+        resizeMode: "cover",
+
+    },
     conversationImage: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         borderRadius: 50,
-        marginRight: 10
+        marginRight: 10,
+        flexDirection: 'row'
     },
     container: {
         flex: 1,
-        marginBottom: windownHeight * 0.3
     },
     heading: {
         width: "100%",
-        height: windownHeight * 0.2 + 20,
         alignItems: "center",
         backgroundColor: "#fafafa"
     },
