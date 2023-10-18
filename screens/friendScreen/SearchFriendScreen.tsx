@@ -13,29 +13,26 @@ import {
     Button,
 } from "react-native";
 import { addFriendApi, getFriendByNameApi, getRandomFriendApi } from "../../services/FriendService";
-import {createNewChat} from "../../services/ChatService";
+import {AntDesign} from "@expo/vector-icons";
+import { FontAwesome } from '@expo/vector-icons';
+const windownWidth = Dimensions.get('window').width
+const windownHeight = Dimensions.get('window').height
 
-const windowWidth = Dimensions.get('window').width;
-const windowHeight = Dimensions.get('window').height;
 
 const SearchFriendScreen = ({ navigation, route }: any) => {
-    const { userData } = route.params;
-    const { user } = route.params;
     const [listFriend, setListFriend] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchValue, setSearchValue] = useState("");
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalVisible, setModalVisible] = useState(false);
 
-    useEffect(() => {
-        getRandomFriend();
-    }, []);
+
 
     const getRandomFriend = async () => {
         setIsLoading(true);
         try {
             const listData = await getRandomFriendApi();
-            const { data } = listData;
+            const {data} = listData;
             setListFriend(data.result);
         } catch (error) {
             console.error("Lỗi khi tải danh sách bạn:", error);
@@ -47,15 +44,16 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
     const searchFriends = async () => {
         setIsLoading(true);
         try {
-            const response = await getFriendByNameApi({ username: searchValue });
-            const { data } = response;
-            setListFriend(data.usersData);
+            const listData = await getFriendByNameApi({ username: searchValue });
+            const {data} = listData;
+            setListFriend(data);
         } catch (error) {
-            console.error("Lỗi khi tìm kiếm:", error);
+            console.error(error);
         } finally {
             setIsLoading(false);
         }
     };
+
 
     const addFriend = async (id: string) => {
         try {
@@ -110,32 +108,12 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
             </TouchableOpacity>
         );
     };
-    const startChatWithFriend = async (friendId: string) => {
-        try {
-            // Tạo cuộc trò chuyện mới và nhận ID của cuộc trò chuyện
-            const newChatResponse = await createNewChat({
-                senderId: userData._id,
-                receiverId: friendId,
-            });
-            const { data: newChatData } = newChatResponse;
-
-            // Chuyển đến màn hình cuộc trò chuyện với thông tin cuộc trò chuyện
-            navigation.navigate('MessageScreen', {
-                conversationId: newChatData.conversationId,
-                members: [userData, selectedUser],
-                groupPicture: 'https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4',
-            });
-        } catch (error) {
-            console.error("Lỗi khi bắt đầu cuộc trò chuyện:", error);
-        }
-    };
-
-
-
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
     };
-
+    useEffect(() => {
+        getRandomFriend();
+    }, []);
     return (
         <SafeAreaView style={styles.container}>
             <View style={styles.heading}>
@@ -146,19 +124,20 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                     <TextInput
                         placeholder="Tìm kiếm"
                         style={styles.searchInput}
-                        onChangeText={(value) => setSearchValue(value)}
+                        onChangeText={(text) => setSearchValue(text)}
                     />
                     <TouchableOpacity
                         style={{
                             justifyContent: "center",
-                            width: 30,
-                            height: 30,
+                            width: 20,
+                            height: 20,
                             position: "absolute",
-                            right: 0,
-                            backgroundColor: "black",
+                            right: 10,
                         }}
                         onPress={searchFriends}
-                    />
+                    >
+                        <FontAwesome name="search" color="black" size={20} />
+                    </TouchableOpacity>
                 </View>
             </View>
             <View style={{ flex: 1 }}>
@@ -181,21 +160,44 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                 </View>
             </View>
             <Modal
-                animationType="slide"
+                animationType="fade"
                 transparent={true}
                 visible={isModalVisible}
                 onRequestClose={toggleModal}
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={toggleModal}>
+                            <AntDesign name="closesquare" size={24} color="black" />
+                        </TouchableOpacity>
+
                         <View>
-                            <Text style={styles.modalText}>Thông tin người dùng</Text>
                             <Text style={styles.modalText}>{selectedUser?.username}</Text>
-                            <Text style={styles.modalText}>{selectedUser?.email}</Text>
                         </View>
-                        <Button title="Kết bạn" onPress={() => { addFriend(selectedUser?._id) }} />
-                        <Button title="Nhắn tin" onPress={() => { startChatWithFriend(selectedUser?._id) }} />
-                        <Button title="Đóng" onPress={toggleModal} />
+
+                        <View style={styles.buttonContainer}>
+                            <TouchableOpacity
+                                style={styles.button}
+                                onPress={() => {
+                                }}
+                            >
+                                <Text style={styles.buttonText}>Thông tin</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.button, styles.redButton]}
+                                onPress={() => {
+                                    { addFriend(selectedUser?._id)
+                                        alert("Kết bạn thành công");
+                                        toggleModal();
+                                    }
+                                }}
+                            >
+                                <Text style={[styles.buttonText, styles.redButtonText]}>Thêm Bạn</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -214,11 +216,10 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        marginBottom: windowHeight * 0.3
     },
     heading: {
         width: "100%",
-        height: windowHeight * 0.2 + 20,
+        height: windownHeight * 0.2 + 20,
         alignItems: "center",
         backgroundColor: "#fafafa"
     },
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
-        marginTop: windowHeight * 0.09
+        marginTop: windownHeight * 0.09
     },
     searchInput: {
         backgroundColor: "#d3d3d3",
@@ -247,14 +248,14 @@ const styles = StyleSheet.create({
     modalContainer: {
         flex: 1,
         justifyContent: "center",
-        alignItems: "center",
+        alignItems: "center"
     },
     modalContent: {
         backgroundColor: "white",
         borderRadius: 10,
         padding: 20,
-        width: windowWidth * 0.8,
-        maxHeight: windowHeight * 0.5,
+        width: windownWidth * 0.8,
+        maxHeight: windownHeight * 0.5,
         justifyContent: "center",
         alignItems: "center",
     },
@@ -262,5 +263,36 @@ const styles = StyleSheet.create({
         fontSize: 20,
         color: "black",
         marginBottom: 10,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+    },
+    closeButtonText: {
+        fontSize: 18,
+        color: 'black',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+    },
+    button: {
+        flex: 1,
+        backgroundColor: 'blue',
+        borderRadius: 10,
+        padding: 10,
+        margin: 5,
+    },
+    redButton: {
+        backgroundColor: 'red',
+    },
+    buttonText: {
+        color: 'white',
+        textAlign: 'center',
+        fontSize: 16,
+    },
+    redButtonText: {
     },
 });

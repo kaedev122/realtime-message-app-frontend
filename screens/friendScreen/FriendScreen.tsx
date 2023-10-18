@@ -11,7 +11,7 @@ import {
     Dimensions,
     StyleSheet
 } from "react-native";
-import { getAllFriendApi } from "../../services/FriendService";
+import {addFriendApi, getAllFriendApi, unFriendApi} from "../../services/FriendService";
 import { AntDesign } from '@expo/vector-icons';
 import { createNewChat } from "../../services/ChatService";
 
@@ -48,35 +48,18 @@ const FriendScreen = ({ navigation, route }: any) => {
         setModalVisible(!isModalVisible);
     };
 
-    const handleSendMessage = async (senderId, receiverId) => {
+    const unFriend = async (id: string) => {
         try {
-            const existingChat = conversations.find(conversation =>
-                conversation.members.some(member => member._id === senderId) &&
-                conversation.members.some(member => member._id === receiverId)
-            );
-
-            if (existingChat) {
-                navigation.navigate('MessageScreen', {
-                    userData: userData,
-                    conversationId: existingChat._id,
-                    members: existingChat.members,
-                    conversationImage: existingChat.conversationImage,
-                });
-            } else {
-                const newChat = await createNewChat({ senderId, receiverId });
-                navigation.navigate('MessageScreen', {
-                    userData: userData,
-                    conversationId: newChat._id,
-                    members: newChat.members,
-                    conversationImage: newChat.conversationImage,
-                });
+            const response = await unFriendApi(id);
+            if (response.status === 200) {
+                alert("Hủy kết bạn thành công");
+                toggleModal();
+                getAllFriend();
             }
         } catch (error) {
-            console.error("Error handling send message: ", error);
+            console.error("Lỗi khi hủy kết bạn:", error);
         }
-    }
-
-
+    };
     const renderFriendItem = ({ item }: any) => {
         return (
             <TouchableOpacity
@@ -194,16 +177,15 @@ const FriendScreen = ({ navigation, route }: any) => {
                                 <TouchableOpacity
                                     style={styles.button}
                                     onPress={() => {
-                                        handleSendMessage(userData._id, selectedUser._id);
                                     }}
                                 >
-                                    <Text style={styles.buttonText}>Nhắn tin</Text>
+                                    <Text style={styles.buttonText}>Thông tin</Text>
                                 </TouchableOpacity>
 
                                 <TouchableOpacity
-                                    style={[styles.button, styles.redButton]} // Thêm styles để đổi màu nút
+                                    style={[styles.button, styles.redButton]}
                                     onPress={() => {
-                                        // Xử lý khi ấn nút Hủy kết bạn
+                                        { unFriend(selectedUser?._id) }
                                     }}
                                 >
                                     <Text style={[styles.buttonText, styles.redButtonText]}>Hủy kết bạn</Text>
@@ -228,7 +210,6 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        marginBottom: windownHeight * 0.3
     },
     heading: {
         width: "100%",

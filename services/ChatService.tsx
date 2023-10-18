@@ -10,10 +10,10 @@ export const getAllConversationApi = () => {
     })
 }
 
-export const getConversationByIdApi = (id: string) => {
+export const getConversationByIdApi = (id1: string, id2: string) => {
     return axios({
         method: "GET",
-        url: BASE_URL.concat(`/chat/c/${id}/${id}`),
+        url: BASE_URL.concat(`/chat/c/${id1}/${id2}`),
     })
 }
 

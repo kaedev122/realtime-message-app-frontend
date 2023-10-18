@@ -16,7 +16,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { GiftedChat } from 'react-native-gifted-chat'
 import moment from 'moment';
-import * as ImagePicker from 'expo-image-picker';
 
 const MessageScreen = ({ route, navigation }: any) => {
     const { userData, conversationId, members, conversationImage } = route.params;
@@ -153,41 +152,6 @@ const MessageScreen = ({ route, navigation }: any) => {
             alert(err);
         }
     }
-    // const handleSend = async (messageType, imageUri) => {
-    //     try {
-    //         const formData = new FormData();
-    //         formData.append("senderId", userId);
-    //         formData.append("recepientId", recepientId);
-
-    //         //if the message type id image or a normal text
-    //         if (messageType === "image") {
-    //             formData.append("messageType", "image");
-    //             formData.append("imageFile", {
-    //                 uri: imageUri,
-    //                 name: "image.jpg",
-    //                 type: "image/jpeg",
-    //             });
-    //         } else {
-    //             formData.append("messageType", "text");
-    //             formData.append("messageText", message);
-    //         }
-
-    //         const response = await fetch("http://localhost:8000/messages", {
-    //             method: "POST",
-    //             body: formData,
-    //         });
-
-    //         if (response.ok) {
-    //             setMessage("");
-    //             setSelectedImage("");
-
-    //             fetchMessages();
-    //         }
-    //     } catch (error) {
-    //         console.log("error in sending the message", error);
-    //     }
-    // };
-
     return (
         <View style={styles.container}>
             <View style={styles.heading}>
