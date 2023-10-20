@@ -41,10 +41,6 @@ const MessageScreen = ({ route, navigation }: any) => {
     const [image, setImage] = useState<string>('');
 
     //
-    const [camera, setCamera] = useState(null)
-    const [cameraPermission, setCameraPermission] = useState(null);
-    const [galleryPermission, setGalleryPermission] = useState(null);
-    //
     const scrollViewRef = useRef(null);
     const [status, requestPermission] = ImagePicker.useCameraPermissions();
     useEffect(() => {
@@ -121,32 +117,26 @@ const MessageScreen = ({ route, navigation }: any) => {
             quality: 1,
         });
         if (!result.canceled) {
-            sendMessage("image", result.assets[0].uri)
-            console.log(result.assets[0].uri)
+            setImage(result.assets[0].uri)
         }
     }
-    const sendMessage = async (type, imageUri) => {
+    const sendMessage = async () => {
         setNewMessage(newMessage.trim());
-        if (!imageUri && newMessage.trim() === '') return
+        if (!image && newMessage.trim() === '') return
         const formData = new FormData();
         formData.append("conversationId", conversationId);
         formData.append("sender", userData._id);
-        if (type === "image") {
-            formData.append("type", "image");
-            formData.append("image", {
-                uri: imageUri,
-                name: "image.jpg",
-                type: "image/jpeg",
-            });
-        } else {
-            formData.append("type", "text");
-            formData.append("text", newMessage);
-        }
-
+        formData.append("text", newMessage);
+        formData.append("image", {
+            uri: image,
+            name: "image.jpg",
+            type: "image/jpeg",
+        })
         try {
             await sendMessageAPI(formData);
             getMessageOfConversation(conversationId);
             setNewMessage('');
+            setImage("")
         } catch (err) {
             alert(err);
         }
@@ -435,6 +425,24 @@ const MessageScreen = ({ route, navigation }: any) => {
             </View>
 
             {/* soạn tin nhắn, gửi ảnh */}
+            <View
+                style={{
+                    justifyContent: "center",
+                    backgroundColor: "#f0f5f4",
+                    flexDirection: "row"
+                }}
+            >
+                {image && (
+                    <Image source={{ uri: image }} style={{ width: 100, height: 100, }} />
+                )}
+                {image &&
+                    <Feather name="x-circle"
+                        size={30}
+                        onPress={() => { setImage(``) }}
+                        color="#a3a3a3"
+                        style={{ left: 20, top: 10 }} />
+                }
+            </View>
             <View style={styles.footer}>
 
                 <TextInput
