@@ -11,14 +11,12 @@ import LoginScreen from './screens/authScreen/LoginScreen'
 ///
 import ChatScreen from './screens/chatScreen/ChatScreen';
 import MessageScreen from './screens/chatScreen/MessageScreen';
-import NewChat from './screens/chatScreen/NewChat';
 ///
 import SearchFriendScreen from './screens/friendScreen/SearchFriendScreen';
 import FriendScreen from "./screens/friendScreen/FriendScreen";
 ///
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
-import NewGroupChat from './screens/chatScreen/NewGroupChat';
 
 ///
 const Stack = createStackNavigator();
@@ -105,8 +103,6 @@ const App = () => {
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
 
         <Stack.Screen name="MessageScreen" component={MessageScreen} />
-        <Stack.Screen name="NewChat" component={NewChat} />
-        <Stack.Screen name="NewGroupChat" component={NewGroupChat} />
 
         <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
         <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />

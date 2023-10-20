@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
-import { BASE_URL, getMessageOfConversationApi, sendMessageAPI, updateConversation } from '../../services/ChatService';
+import React, { useState, useEffect, useRef } from 'react';
+import { getMessageOfConversationApi, sendMessageAPI, updateConversation } from '../../services/ChatService';
 import {
     Image,
     StyleSheet,
@@ -7,25 +7,30 @@ import {
     View,
     TextInput,
     Modal,
-    Dimensions,
     FlatList,
     TouchableOpacity,
-    Button,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { Ionicons, Feather, MaterialIcons, FontAwesome } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import moment from 'moment';
 import * as ImagePicker from 'expo-image-picker';
-import { Camera } from 'expo-camera'
-import axios from 'axios';
 
 const MessageScreen = ({ route, navigation }: any) => {
-    const { userData, conversationId, members, conversationImage, isGroup } = route.params;
+    const {
+        userData,
+        conversationId,
+        members,
+        conversationImage,
+        isGroup,
+        groupName,
+        groupAvatar
+    } = route.params;
+
     const [isLoading, setIsLoading] = useState<boolean>(false);
     //
     const [isModalUpdateVisible, setModalUpdateVisible] = useState(false);
-    const [newGroupName, setNewGroupName] = useState<string>('')
+    const [newGroupName, setNewGroupName] = useState<string>(groupName)
     const [newGroupAvatar, setNewGroupAvatar] = useState<string>('');
     //
     const [message, setMessage] = useState([]);
@@ -109,6 +114,76 @@ const MessageScreen = ({ route, navigation }: any) => {
         }
         setIsLoading(false);
     };
+    const pickImageForMessage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            quality: 1,
+        });
+        if (!result.canceled) {
+            sendMessage("image", result.assets[0].uri)
+            console.log(result.assets[0].uri)
+        }
+    }
+    const sendMessage = async (type, imageUri) => {
+        setNewMessage(newMessage.trim());
+        if (!imageUri && newMessage.trim() === '') return
+        const formData = new FormData();
+        formData.append("conversationId", conversationId);
+        formData.append("sender", userData._id);
+        if (type === "image") {
+            formData.append("type", "image");
+            formData.append("image", {
+                uri: imageUri,
+                name: "image.jpg",
+                type: "image/jpeg",
+            });
+        } else {
+            formData.append("type", "text");
+            formData.append("text", newMessage);
+        }
+
+        try {
+            await sendMessageAPI(formData);
+            getMessageOfConversation(conversationId);
+            setNewMessage('');
+        } catch (err) {
+            alert(err);
+        }
+    }
+    const pickImageForUpdate = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            quality: 1,
+        });
+        if (!result.canceled) {
+            console.log(result.assets[0].uri)
+            setNewGroupAvatar(result.assets[0].uri)
+        }
+    }
+    const updateGroupChat = async () => {
+        setNewGroupName(newGroupName.trim());
+        if (!newGroupAvatar && newGroupName.trim() === '') return
+        const formData = new FormData()
+        formData.append("groupName", newGroupName)
+        formData.append("groupAvatar", {
+            uri: newGroupAvatar,
+            name: "image.jpg",
+            type: "image/jpeg",
+        })
+        try {
+            const res = await updateConversation(conversationId, formData)
+            console.log(res)
+            setNewGroupAvatar("")
+            setNewGroupName("")
+            setModalUpdateVisible(!isModalUpdateVisible)
+            getMessageOfConversation(conversationId)
+        } catch (error) {
+
+        }
+    }
+
 
 
     const renderMessageItem = ({ item, index }) => {
@@ -223,70 +298,6 @@ const MessageScreen = ({ route, navigation }: any) => {
     // }, []);
 
 
-
-    const pickImageForMessage = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            quality: 1,
-        });
-        if (!result.canceled) {
-            sendMessage("image", result.assets[0].uri)
-            console.log(result.assets[0].uri)
-        }
-    }
-    const sendMessage = async (type, imageUri) => {
-        setNewMessage(newMessage.trim());
-        if (!imageUri && newMessage.trim() === '') return
-        const formData = new FormData();
-        formData.append("conversationId", conversationId);
-        formData.append("sender", userData._id);
-        if (type === "image") {
-            formData.append("type", "image");
-            formData.append("image", {
-                uri: imageUri,
-                name: "image.jpg",
-                type: "image/jpeg",
-            });
-        } else {
-            formData.append("type", "text");
-            formData.append("text", newMessage);
-        }
-
-        try {
-            await sendMessageAPI(formData);
-            getMessageOfConversation(conversationId);
-            setImage('');
-            setNewMessage('');
-        } catch (err) {
-            alert(err);
-        }
-    }
-
-    const pickImageForUpdate = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            quality: 1,
-        });
-        if (!result.canceled) {
-            console.log(result.assets[0].uri)
-            setNewGroupAvatar(result.assets[0].uri)
-        }
-    }
-    const updateGroupChat = async () => {
-        setNewGroupName(newGroupName.trim());
-        if (!newGroupAvatar && newGroupName.trim() === '') return
-        try {
-            await updateConversation(conversationId, { groupName: newGroupName, groupAvatar: newGroupAvatar })
-            getMessageOfConversation(conversationId);
-            setNewGroupName('');
-            setNewGroupAvatar('')
-        } catch (err) {
-            alert(err);
-        }
-    }
-
     return (
         <View style={styles.container}>
             <View style={{ alignItems: "center", height: 60, flexDirection: "row", left: 10, gap: 15 }}>
@@ -300,8 +311,7 @@ const MessageScreen = ({ route, navigation }: any) => {
                 <TouchableOpacity
                     onPress={() => {
                         {
-                            isGroup &&
-                                setModalUpdateVisible(!isModalUpdateVisible)
+                            isGroup && setModalUpdateVisible(!isModalUpdateVisible)
                         }
                     }}
                     style={{
@@ -309,66 +319,93 @@ const MessageScreen = ({ route, navigation }: any) => {
                         alignItems: "center",
                         gap: 10
                     }}>
+
                     <View style={{ left: 10, bottom: 5 }}>
-                        {members.length > 1
-                            ? (
-                                <View style={styles.conversationImage}>
-                                    <View style={{
-                                        flex: 1,
-                                        padding: 1,
-                                    }}>
-                                        <Image
-                                            source={{ uri: userData.profilePicture }}
-                                            style={{
-                                                width: 40, height: 40,
-                                                resizeMode: "cover",
-                                                borderRadius: 30,
-                                                borderColor: "#f3f4fb",
-                                                borderWidth: 2
-                                            }}
-                                        />
-                                    </View>
+                        {groupAvatar && (
+                            <View style={styles.conversationImage}>
+                                <View style={{
+                                    flex: 1,
+                                    padding: 1,
+                                }}>
+                                    <Image
+                                        source={{ uri: groupAvatar }}
+                                        style={{
+                                            width: 50, height: 50, borderRadius: 30
+                                        }}
+                                    />
+                                </View>
+                            </View>
+                        )
+                            ||
+                            (
+                                (members.length > 1)
+                                    ? (
+                                        <View style={styles.conversationImage}>
+                                            <View style={{
+                                                flex: 1,
+                                                padding: 1,
+                                            }}>
+                                                <Image
+                                                    source={{ uri: userData.profilePicture }}
+                                                    style={{
+                                                        width: 40, height: 40,
+                                                        resizeMode: "cover",
+                                                        borderRadius: 30,
+                                                        borderColor: "#f3f4fb",
+                                                        borderWidth: 2
+                                                    }}
+                                                />
+                                            </View>
 
 
-                                    <View style={{
-                                        flex: 1,
-                                        padding: 1,
-                                    }}>
-                                        <Image
-                                            source={{ uri: conversationImage[0] }}
-                                            style={{
-                                                right: 15, bottom: 10,
-                                                width: 40, height: 40,
-                                                resizeMode: "cover",
-                                                borderRadius: 30,
-                                                borderColor: "#f3f4fb",
-                                                borderWidth: 2
-                                            }}
-                                        />
-                                    </View>
-                                </View>
-                            ) : (
-                                <View style={styles.conversationImage}>
-                                    <View style={{
-                                        flex: 1,
-                                        padding: 1,
-                                    }}>
-                                        <Image
-                                            source={{ uri: conversationImage[0] }}
-                                            style={{
-                                                width: "100%", height: "100%", borderRadius: 30
-                                            }}
-                                        />
-                                    </View>
-                                </View>
+                                            <View style={{
+                                                flex: 1,
+                                                padding: 1,
+                                            }}>
+                                                <Image
+                                                    source={{ uri: conversationImage[0] }}
+                                                    style={{
+                                                        right: 15, bottom: 10,
+                                                        width: 40, height: 40,
+                                                        resizeMode: "cover",
+                                                        borderRadius: 30,
+                                                        borderColor: "#f3f4fb",
+                                                        borderWidth: 2
+                                                    }}
+                                                />
+                                            </View>
+                                        </View>
+                                    ) : (
+                                        <View style={styles.conversationImage}>
+                                            <View style={{
+                                                flex: 1,
+                                                padding: 1,
+                                            }}>
+                                                <Image
+                                                    source={{ uri: conversationImage[0] }}
+                                                    style={{
+                                                        width: "100%", height: "100%", borderRadius: 30
+                                                    }}
+                                                />
+                                            </View>
+                                        </View>
+                                    )
                             )
                         }
+
                     </View>
 
-                    <Text style={{ marginLeft: 5, fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
-                        {members.map(member => member.username).join(', ')}
 
-                    </Text>
+
+                    {groupName &&
+                        <Text style={{ marginLeft: 5, fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
+                            {groupName}
+                        </Text>
+                        ||
+                        <Text style={{ marginLeft: 5, fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
+                            {members.map(member => member.username).join(', ')}
+                        </Text>
+                    }
                     {isGroup &&
                         <MaterialIcons name="edit" size={20} color="gray" />
                     }
@@ -396,6 +433,8 @@ const MessageScreen = ({ route, navigation }: any) => {
                 }}
             >
             </View>
+
+            {/* soạn tin nhắn, gửi ảnh */}
             <View style={styles.footer}>
 
                 <TextInput
@@ -432,6 +471,8 @@ const MessageScreen = ({ route, navigation }: any) => {
                 </TouchableOpacity>
 
             </View>
+
+            {/* see picture */}
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -448,6 +489,8 @@ const MessageScreen = ({ route, navigation }: any) => {
                     </View>
                 </View>
             </Modal>
+
+            {/* edit group name, group avatar */}
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -456,7 +499,12 @@ const MessageScreen = ({ route, navigation }: any) => {
                 onRequestClose={() => setModalUpdateVisible(!isModalUpdateVisible)}
             >
                 <View style={styles.modalUpdateBackground}>
-                    <TouchableOpacity style={styles.touchable} onPress={() => setModalUpdateVisible(!isModalUpdateVisible)}>
+                    <TouchableOpacity style={styles.touchable}
+                        onPress={() => {
+                            setModalUpdateVisible(!isModalUpdateVisible)
+                            setNewGroupName("")
+                            setNewGroupAvatar("")
+                        }}>
                     </TouchableOpacity>
                     <View style={styles.modalUpdate}>
                         <View
@@ -477,9 +525,10 @@ const MessageScreen = ({ route, navigation }: any) => {
                                 onPress={() => {
                                     setModalUpdateVisible(!isModalUpdateVisible)
                                     setNewGroupName('')
+                                    setNewGroupAvatar('')
                                 }}
                             >
-                                <Text style={{ color: "#0a83f5", fontSize: 20 }}>Huỷ</Text>
+                                <Text style={{ color: "#0a83f5", fontSize: 20 }}>Hủy</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={{
@@ -493,62 +542,89 @@ const MessageScreen = ({ route, navigation }: any) => {
                             </TouchableOpacity>
                         </View>
 
+
                         <View style={{ marginVertical: 20 }}>
-                            {members.length > 1
-                                && (
-                                    <View style={styles.conversationImage}>
-                                        <View style={{
-                                            flex: 1,
-                                            padding: 1,
-                                        }}>
-                                            <Image
-                                                source={{ uri: userData.profilePicture }}
-                                                style={{
-                                                    right: 20, top: 20,
-                                                    width: 70, height: 70,
-                                                    resizeMode: "cover",
-                                                    borderRadius: 50,
-                                                    borderColor: "#f3f4fb",
-                                                    borderWidth: 2
-                                                }}
-                                            />
-                                        </View>
+
+                            {groupAvatar && (
+                                <Image
+                                    source={{ uri: newGroupAvatar || groupAvatar }}
+                                    style={{
+                                        width: 80,
+                                        height: 80,
+                                        borderRadius: 50
+                                    }}
+                                />
+                            )
+                                ||
+                                (
+                                    (members.length > 1)
+                                    && (
+                                        <View style={styles.conversationImage}>
+                                            <View style={{
+                                                flex: 1,
+                                                padding: 1,
+                                            }}>
+                                                <Image
+                                                    source={{ uri: userData.profilePicture }}
+                                                    style={{
+                                                        right: 20, top: 20,
+                                                        width: 70, height: 70,
+                                                        resizeMode: "cover",
+                                                        borderRadius: 50,
+                                                        borderColor: "#f3f4fb",
+                                                        borderWidth: 2
+                                                    }}
+                                                />
+                                            </View>
 
 
-                                        <View style={{
-                                            flex: 1,
-                                            padding: 1,
-                                        }}>
-                                            <Image
-                                                source={{ uri: conversationImage[0] }}
-                                                style={{
-                                                    left: 10, bottom: 30,
-                                                    width: 70, height: 70,
-                                                    resizeMode: "cover",
-                                                    borderRadius: 50,
-                                                    borderColor: "#f3f4fb",
-                                                    borderWidth: 2
-                                                }}
-                                            />
+                                            <View style={{
+                                                flex: 1,
+                                                padding: 1,
+                                            }}>
+                                                <Image
+                                                    source={{ uri: conversationImage[0] }}
+                                                    style={{
+                                                        left: 10, bottom: 30,
+                                                        width: 70, height: 70,
+                                                        resizeMode: "cover",
+                                                        borderRadius: 50,
+                                                        borderColor: "#f3f4fb",
+                                                        borderWidth: 2
+                                                    }}
+                                                />
+                                            </View>
                                         </View>
-                                    </View>
+                                    )
                                 )
+                            }
+                            {
+                                newGroupAvatar &&
+                                <Feather name="x-circle" size={24}
+                                    onPress={() => setNewGroupAvatar("")}
+                                    style={{
+                                        position: "absolute",
+                                        right: 0,
+                                        backgroundColor: "#f3f4fa",
+                                        borderRadius: 50,
+                                    }}
+                                />
                             }
                         </View>
                         <View style={{
-                            width: "100%",
+                            width: "85%",
                             justifyContent: "center",
-                            alignItems: "center"
+                            alignItems: "center",
+                            marginVertical: 20
                         }}>
                             <TextInput
                                 style={{
                                     backgroundColor: "#f3f4fb",
                                     height: 50,
-                                    width: "85%",
+                                    width: "100%",
                                     fontSize: 20,
                                     borderRadius: 10,
                                     padding: 10,
-                                    marginVertical: 50,
 
                                 }}
 
@@ -570,22 +646,20 @@ const MessageScreen = ({ route, navigation }: any) => {
                                     }}
                                 />
                             }
-                            <View
-                                style={{
-                                    height: 50,
-                                    width: 50,
-                                    backgroundColor: "#f3f4fb",
-                                    borderRadius: 30,
-                                    alignItems: "center",
-                                    justifyContent: "center"
-                                }}>
-                                <FontAwesome onPress={pickImageForUpdate} name="picture-o" size={24} color="black" />
-                            </View>
-                            <Text>Tải lên</Text>
+
                         </View>
-
-
-                        {/* <Image style={{ height: 350, width: 350 }} source={{ uri: selectedMessage.image }} /> */}
+                        <View
+                            style={{
+                                height: 50,
+                                width: 50,
+                                backgroundColor: "#f3f4fb",
+                                borderRadius: 30,
+                                alignItems: "center",
+                                justifyContent: "center"
+                            }}>
+                            <FontAwesome onPress={pickImageForUpdate} name="picture-o" size={24} color="black" />
+                        </View>
+                        <Text>Tải lên</Text>
                     </View>
                 </View>
             </Modal >
