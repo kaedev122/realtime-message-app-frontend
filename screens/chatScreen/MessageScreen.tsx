@@ -42,24 +42,13 @@ const MessageScreen = ({ route, navigation }: any) => {
 
     useEffect(() => { 
         socket.current.on("getMessage", (data) => {
-            setArrivalMessage({
-                _id: data._id,
-                conversationId: data.conversationId,
-                text: data.text,
-                createdAt: data.createdAt,
-                image: data.image,
-                sender: {
-                    _id: userData._id,
-                    profilePicture: userData.profilePicture,
-                    username: userData.username
-                }
-            });
-        });
+            console.log("datadatadatadatadatadatadatadatadata", data)
+            setArrivalMessage(data)
         console.log("-------------------------")
+        })
     }, [])
 
     useEffect(() => {
-        console.log("arrivalMessage", arrivalMessage)
         if(arrivalMessage && conversationId == arrivalMessage.conversationId) {
             setMessage([...message, arrivalMessage])
         }
@@ -77,7 +66,7 @@ const MessageScreen = ({ route, navigation }: any) => {
 
     useEffect(() => {
         getMessageOfConversation(conversationId);
-    }, []);
+    }, [conversationId]);
 
     const getMessageOfConversation = async (conversationId: string) => {
         setIsLoading(true);
@@ -93,9 +82,9 @@ const MessageScreen = ({ route, navigation }: any) => {
 
     const renderMessageItem = ({ item, index }) => {
         const shouldDisplayCreatedAt = shouldDisplayDay(index);
-        const senderInfo = members.find(member => member._id === item.sender._id);
+        const senderInfo = members.find(member => member._id == item.sender._id);
         const senderName = senderInfo ? senderInfo.username : null;
-        const isUserDataSender = item.sender._id === userData._id;
+        const isUserDataSender = item.sender._id == userData._id;
         const senderNameStyle = [styles.senderName, {
             alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
         }];
