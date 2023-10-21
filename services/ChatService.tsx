@@ -27,7 +27,6 @@ export const sendMessageAPI = (formData) => {
                 'Content-Type': 'multipart/form-data',
             },
         });
-
 }
 
 export const createNewChat = ({ senderId, receiverId }: NewChatBody) => {
@@ -49,13 +48,13 @@ export const createNewGroupChat = ({ members }: NewGroupChatBody) => {
         },
     })
 }
-export const updateConversation = (id: string, group: { groupName: string; groupAvatar: string }) => {
-    return axios({
-        method: "PUT",
-        url: BASE_URL.concat(`/user/profile/${id}`),
-        data: {
-            groupName: group.groupName,
-            groupAvatar: group.groupAvatar
-        }
-    });
+export const updateConversation = (id: string, formData) => {
+    return axios.put(
+        BASE_URL.concat(`/chat/c/group/${id}`),
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
 }
