@@ -1,6 +1,6 @@
 import axios from "axios"
 
-const BASE_URL = 'https://realtime-message-app-backend.vercel.app/api';
+const BASE_URL = 'https://realtime-chat-app-server-88535f0d324c.herokuapp.com/api';
 
 export const getUserDataApi = () => {
     const userData = axios({
