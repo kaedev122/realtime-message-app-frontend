@@ -37,7 +37,7 @@ const MessageScreen = ({ route, navigation }: any) => {
     useEffect(() => {
         socket.current = io("https://realtime-chat-app-server-88535f0d324c.herokuapp.com");
         socket.current.emit("addUser", userData._id);
-
+        console.log("========================")
     }, []);
 
     useEffect(() => { 
@@ -55,12 +55,14 @@ const MessageScreen = ({ route, navigation }: any) => {
                 }
             });
         });
+        console.log("-------------------------")
     }, [])
 
     useEffect(() => {
-        arrivalMessage && 
-            members.includes(arrivalMessage.sender._id) &&
-                setMessage(...message, arrivalMessage)
+        console.log("arrivalMessage", arrivalMessage)
+        if(arrivalMessage && conversationId == arrivalMessage.conversationId) {
+            setMessage([...message, arrivalMessage])
+        }
     }, [arrivalMessage])
 
     const scrollToBottom = () => {
@@ -189,11 +191,10 @@ const MessageScreen = ({ route, navigation }: any) => {
                     profilePicture: userData.profilePicture,
                     username: userData.username
                 },
-                members: members
+                members: members, 
             };
-            console.log(socketMessage)
+
             socket.current.emit("sendMessage", socketMessage);
-            getMessageOfConversation(conversationId);  
             setNewMessage('');
         } catch (err) {
             alert(err);
