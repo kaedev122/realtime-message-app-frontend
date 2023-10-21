@@ -15,6 +15,7 @@ import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import moment from 'moment';
 import * as ImagePicker from 'expo-image-picker';
+import { io } from "socket.io-client";
 
 const MessageScreen = ({ route, navigation }: any) => {
     const {
@@ -35,6 +36,8 @@ const MessageScreen = ({ route, navigation }: any) => {
     //
     const [message, setMessage] = useState([]);
     const [newMessage, setNewMessage] = useState<string>('');
+    const [arrivalMessage, setArrivalMessage] = useState(null);
+    const socket = useRef();
     //
     const [selectedMessage, setSelectedMessage] = useState([])
     const [isModalImageVisible, setModalImageVisible] = useState(false);
@@ -56,6 +59,25 @@ const MessageScreen = ({ route, navigation }: any) => {
     const handleContentSizeChange = () => {
         scrollToBottom();
     }
+
+    useEffect(() => {
+        socket.current = io("https://realtime-chat-app-server-88535f0d324c.herokuapp.com");
+        socket.current.emit("addUser", userData._id);
+        console.log("========================")
+    }, []);
+
+    useEffect(() => { 
+        socket.current.on("getMessage", (data) => {
+            setArrivalMessage(data)
+        console.log("-------------------------")
+        })
+    }, [])
+
+    useEffect(() => {
+        if(arrivalMessage && conversationId == arrivalMessage.conversationId) {
+            setMessage([...message, arrivalMessage])
+        }
+    }, [arrivalMessage])
 
     let lastDisplayedDate = null;
     const shouldDisplayDay = (index) => {
@@ -133,8 +155,27 @@ const MessageScreen = ({ route, navigation }: any) => {
             type: "image/jpeg",
         })
         try {
-            await sendMessageAPI(formData);
-            getMessageOfConversation(conversationId);
+            const newMessageObject = {
+                conversationId: conversationId,
+                text: newMessage,
+                sender: userData._id
+            };
+            const {data} = await sendMessageAPI(newMessageObject);
+            const socketMessage = {
+                _id: data._id,
+                conversationId: data.conversationId,
+                text: data.text,
+                createdAt: data.createdAt,
+                image: data.image,
+                sender: {
+                    _id: userData._id,
+                    profilePicture: userData.profilePicture,
+                    username: userData.username
+                },
+                members: members, 
+            };
+
+            socket.current.emit("sendMessage", socketMessage);
             setNewMessage('');
             setImage("")
         } catch (err) {

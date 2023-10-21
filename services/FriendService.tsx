@@ -1,7 +1,7 @@
 import axios from "axios"
 import {FriendBody} from "./interfaces/IFriend";
 
-const BASE_URL = 'https://realtime-message-app-backend.vercel.app/api';
+const BASE_URL = 'https://realtime-chat-app-server-88535f0d324c.herokuapp.com/api';
 
 export const getAllFriendApi = () => {
     return axios({
