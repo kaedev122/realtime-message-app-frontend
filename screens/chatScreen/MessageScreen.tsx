@@ -17,6 +17,7 @@ import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { GiftedChat } from 'react-native-gifted-chat'
 import moment from 'moment';
 import * as ImagePicker from 'expo-image-picker';
+import { io } from "socket.io-client";
 
 const MessageScreen = ({ route, navigation }: any) => {
     const { userData, conversationId, members, conversationImage } = route.params;
@@ -24,10 +25,31 @@ const MessageScreen = ({ route, navigation }: any) => {
     const [message, setMessage] = useState([]);
     const [newMessage, setNewMessage] = useState<string>('');
 
+    const socket = useRef();
+
     const scrollViewRef = useRef(null);
 
     useEffect(() => {
         scrollToBottom()
+    }, []);
+
+    useEffect(() => {
+        socket.current = io("https://realtime-chat-app-server-88535f0d324c.herokuapp.com");
+        socket.current.emit("addUser", userData._id);
+        socket.current.on("getMessage", (data) => {
+            setMessage(...message, {
+                _id: data._id,
+                conversationId: data.conversationId,
+                text: data.text,
+                createdAt: data.createdAt,
+                image: data.image,
+                sender: {
+                    _id: userData._id,
+                    profilePicture: userData.profilePicture,
+                    username: userData.username
+                }
+            });
+        });
     }, []);
 
     const scrollToBottom = () => {
@@ -42,7 +64,6 @@ const MessageScreen = ({ route, navigation }: any) => {
 
     useEffect(() => {
         getMessageOfConversation(conversationId);
-
     }, []);
 
     const getMessageOfConversation = async (conversationId: string) => {
@@ -145,9 +166,23 @@ const MessageScreen = ({ route, navigation }: any) => {
                 text: newMessage,
                 sender: userData._id
             };
-            const messageResponse = await sendMessageAPI(newMessageObject);
-            const { data } = messageResponse;
-            setMessage([...message, data]);
+            const {data} = await sendMessageAPI(newMessageObject);
+            const socketMessage = {
+                _id: data._id,
+                conversationId: data.conversationId,
+                text: data.text,
+                createdAt: data.createdAt,
+                image: data.image,
+                sender: {
+                    _id: userData._id,
+                    profilePicture: userData.profilePicture,
+                    username: userData.username
+                },
+                members: members
+            };
+            console.log(socketMessage)
+            socket.current.emit("sendMessage", socketMessage);
+            getMessageOfConversation(conversationId);  
             setNewMessage('');
         } catch (err) {
             alert(err);

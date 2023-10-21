@@ -30,12 +30,12 @@ const UserProfileScreen = ({ navigation, route }: any) => {
 
       <View style={styles.userInfo}>
         <Image style={styles.userImage}
-               source={ {uri: userData.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4"}}
+               source={ {uri: userData?.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4"}}
 
         />
         <View style={styles.infor} >
-          <Text style={styles.username}>{userData.username}</Text>
-          <Text style={styles.email}>{userData.email}</Text>
+          <Text style={styles.username}>{userData?.username}</Text>
+          <Text style={styles.email}>{userData?.email}</Text>
         </View>
 
       </View>
