@@ -24,6 +24,7 @@ const MessageScreen = ({ route, navigation }: any) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [message, setMessage] = useState([]);
     const [newMessage, setNewMessage] = useState<string>('');
+    const [arrivalMessage, setArrivalMessage] = useState(null);
 
     const socket = useRef();
 
@@ -36,8 +37,12 @@ const MessageScreen = ({ route, navigation }: any) => {
     useEffect(() => {
         socket.current = io("https://realtime-chat-app-server-88535f0d324c.herokuapp.com");
         socket.current.emit("addUser", userData._id);
+
+    }, []);
+
+    useEffect(() => { 
         socket.current.on("getMessage", (data) => {
-            setMessage(...message, {
+            setArrivalMessage({
                 _id: data._id,
                 conversationId: data.conversationId,
                 text: data.text,
@@ -50,7 +55,13 @@ const MessageScreen = ({ route, navigation }: any) => {
                 }
             });
         });
-    }, []);
+    }, [])
+
+    useEffect(() => {
+        arrivalMessage && 
+            members.includes(arrivalMessage.sender._id) &&
+                setMessage(...message, arrivalMessage)
+    }, [arrivalMessage])
 
     const scrollToBottom = () => {
         if (scrollViewRef.current) {
