@@ -14,6 +14,8 @@ import {
 import {addFriendApi, getAllFriendApi, unFriendApi} from "../../services/FriendService";
 import { AntDesign } from '@expo/vector-icons';
 import { createNewChat } from "../../services/ChatService";
+import {showToast} from "../../component/showToast";
+import Toast from "react-native-toast-message";
 
 const windownWidth = Dimensions.get('window').width
 const windownHeight = Dimensions.get('window').height
@@ -52,7 +54,7 @@ const FriendScreen = ({ navigation, route }: any) => {
         try {
             const response = await unFriendApi(id);
             if (response.status === 200) {
-                alert("Hủy kết bạn thành công");
+                showToast("success","Hủy kết bạn thành công")
                 toggleModal();
                 getAllFriend();
             }
@@ -195,6 +197,7 @@ const FriendScreen = ({ navigation, route }: any) => {
                     </View>
                 </Modal>
             </View>
+            <Toast/>
         </SafeAreaView>
     );
 };

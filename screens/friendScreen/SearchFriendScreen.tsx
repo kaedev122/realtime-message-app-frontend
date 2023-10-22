@@ -15,6 +15,8 @@ import {
 import { addFriendApi, getFriendByNameApi, getRandomFriendApi } from "../../services/FriendService";
 import {AntDesign} from "@expo/vector-icons";
 import { FontAwesome } from '@expo/vector-icons';
+import Toast from "react-native-toast-message";
+import {showToast} from "../../component/showToast";
 const windownWidth = Dimensions.get('window').width
 const windownHeight = Dimensions.get('window').height
 
@@ -60,6 +62,7 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
             const response = await addFriendApi(id);
             if (response.status === 200) {
                 console.log("Kết bạn thành công!");
+                showToast("success","Kết bạn thành công")
             }
         } catch (error) {
             console.error("Lỗi khi kết bạn:", error);
@@ -190,7 +193,6 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                                 style={[styles.button, styles.redButton]}
                                 onPress={() => {
                                     { addFriend(selectedUser?._id)
-                                        alert("Kết bạn thành công");
                                         toggleModal();
                                     }
                                 }}
@@ -201,6 +203,7 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                     </View>
                 </View>
             </Modal>
+            <Toast/>
         </SafeAreaView>
     );
 };
