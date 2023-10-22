@@ -9,22 +9,26 @@ import {
     Modal,
     TextInput,
     Dimensions,
-    StyleSheet,
-    Button
+    StyleSheet
 } from "react-native";
-import { getAllFriendApi } from "../../services/FriendService";
+import {addFriendApi, getAllFriendApi, unFriendApi} from "../../services/FriendService";
+import { AntDesign } from '@expo/vector-icons';
+import { createNewChat } from "../../services/ChatService";
+import {showToast} from "../../component/showToast";
+import Toast from "react-native-toast-message";
 
 const windownWidth = Dimensions.get('window').width
 const windownHeight = Dimensions.get('window').height
-const FriendScreen = ({ route }: any) => {
-    const { userData } = route.params
+
+const FriendScreen = ({ navigation, route }: any) => {
+    const { userData } = route.params;
     const [dialogVisible, setDialogVisible] = useState(false);
     const [selectedFriend, setSelectedFriend] = useState(null);
     const [friends, setFriends] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-
-
-
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isModalVisible, setModalVisible] = useState(false);
+    const [conversations, setConversations] = useState([]);
 
     const getAllFriend = async () => {
         setIsLoading(true);
@@ -32,19 +36,38 @@ const FriendScreen = ({ route }: any) => {
             const listData = await getAllFriendApi();
             const { data } = listData;
             setFriends(data.friendList);
-        } catch (error: any) {
+        } catch (error) {
             alert(error.response);
         }
-        setIsLoading(false)
+        setIsLoading(false);
     };
+
     useEffect(() => {
         getAllFriend();
     }, []);
+
+    const toggleModal = () => {
+        setModalVisible(!isModalVisible);
+    };
+
+    const unFriend = async (id: string) => {
+        try {
+            const response = await unFriendApi(id);
+            if (response.status === 200) {
+                showToast("success","Hủy kết bạn thành công")
+                toggleModal();
+                getAllFriend();
+            }
+        } catch (error) {
+            console.error("Lỗi khi hủy kết bạn:", error);
+        }
+    };
     const renderFriendItem = ({ item }: any) => {
         return (
             <TouchableOpacity
                 onPress={() => {
-
+                    setSelectedUser(item);
+                    toggleModal();
                 }}
                 style={{
                     width: "100%",
@@ -84,7 +107,6 @@ const FriendScreen = ({ route }: any) => {
             </TouchableOpacity>
         );
     };
-
 
     return (
         <SafeAreaView style={styles.container}>
@@ -135,8 +157,47 @@ const FriendScreen = ({ route }: any) => {
                         )}
                     />
                 </View>
-            </View>
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={isModalVisible}
+                    onRequestClose={toggleModal}
+                >
+                    <View style={styles.modalContainer}>
+                        <View style={styles.modalContent}>
+                            <TouchableOpacity
+                                style={styles.closeButton}
+                                onPress={toggleModal}>
+                                <AntDesign name="closesquare" size={24} color="black" />
+                            </TouchableOpacity>
 
+                            <View>
+                                <Text style={styles.modalText}>{selectedUser?.username}</Text>
+                            </View>
+
+                            <View style={styles.buttonContainer}>
+                                <TouchableOpacity
+                                    style={styles.button}
+                                    onPress={() => {
+                                    }}
+                                >
+                                    <Text style={styles.buttonText}>Thông tin</Text>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity
+                                    style={[styles.button, styles.redButton]}
+                                    onPress={() => {
+                                        { unFriend(selectedUser?._id) }
+                                    }}
+                                >
+                                    <Text style={[styles.buttonText, styles.redButtonText]}>Hủy kết bạn</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+            </View>
+            <Toast/>
         </SafeAreaView>
     );
 };
@@ -152,7 +213,6 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        marginBottom: windownHeight * 0.3
     },
     heading: {
         width: "100%",
@@ -182,4 +242,55 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         flexDirection: "row"
     },
-})
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    modalContent: {
+        backgroundColor: "white",
+        borderRadius: 10,
+        padding: 20,
+        width: windownWidth * 0.8,
+        maxHeight: windownHeight * 0.5,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    modalText: {
+        fontSize: 20,
+        color: "black",
+        marginBottom: 10,
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+    },
+    closeButtonText: {
+        fontSize: 18,
+        color: 'black',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+    },
+    button: {
+        flex: 1,
+        backgroundColor: 'blue', // Màu nền của nút Nhắn tin
+        borderRadius: 10,
+        padding: 10,
+        margin: 5,
+    },
+    redButton: {
+        backgroundColor: 'red', // Màu nền của nút Hủy kết bạn
+    },
+    buttonText: {
+        color: 'white',
+        textAlign: 'center',
+        fontSize: 16,
+    },
+    redButtonText: {
+        // Kiểu dáng cho nút Hủy kết bạn
+    },
+});

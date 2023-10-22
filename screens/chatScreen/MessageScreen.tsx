@@ -9,8 +9,11 @@ import {
     Modal,
     FlatList,
     TouchableOpacity,
+    KeyboardAvoidingView,
+    Platform,
+    Keyboard,
+    StatusBar
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import moment from 'moment';
@@ -32,7 +35,7 @@ const MessageScreen = ({ route, navigation }: any) => {
     //
     const [isModalUpdateVisible, setModalUpdateVisible] = useState(false);
     const [newGroupName, setNewGroupName] = useState<string>(groupName)
-    const [newGroupAvatar, setNewGroupAvatar] = useState<string>('');
+    const [newGroupAvatar, setNewGroupAvatar] = useState<string>(groupAvatar);
     //
     const [message, setMessage] = useState([]);
     const [newMessage, setNewMessage] = useState<string>('');
@@ -66,15 +69,15 @@ const MessageScreen = ({ route, navigation }: any) => {
         console.log("========================")
     }, []);
 
-    useEffect(() => { 
+    useEffect(() => {
         socket.current.on("getMessage", (data) => {
             setArrivalMessage(data)
-        console.log("-------------------------")
+            console.log("-------------------------")
         })
     }, [])
 
     useEffect(() => {
-        if(arrivalMessage && conversationId == arrivalMessage.conversationId) {
+        if (arrivalMessage && conversationId == arrivalMessage.conversationId) {
             setMessage([...message, arrivalMessage])
         }
     }, [arrivalMessage])
@@ -149,18 +152,13 @@ const MessageScreen = ({ route, navigation }: any) => {
         formData.append("conversationId", conversationId);
         formData.append("sender", userData._id);
         formData.append("text", newMessage);
-        formData.append("image", {
+        image && formData.append("image", {
             uri: image,
             name: "image.jpg",
             type: "image/jpeg",
         })
         try {
-            const newMessageObject = {
-                conversationId: conversationId,
-                text: newMessage,
-                sender: userData._id
-            };
-            const {data} = await sendMessageAPI(newMessageObject);
+            const { data } = await sendMessageAPI(formData);
             const socketMessage = {
                 _id: data._id,
                 conversationId: data.conversationId,
@@ -172,12 +170,14 @@ const MessageScreen = ({ route, navigation }: any) => {
                     profilePicture: userData.profilePicture,
                     username: userData.username
                 },
-                members: members, 
+                members: members,
             };
 
             socket.current.emit("sendMessage", socketMessage);
             setNewMessage('');
             setImage("")
+            Keyboard.dismiss
+
         } catch (err) {
             alert(err);
         }
@@ -243,37 +243,37 @@ const MessageScreen = ({ route, navigation }: any) => {
                 )}
                 {item?.image ?
                     (<TouchableOpacity
-                        onPress={() => {
-                            setSelectedMessage(item)
-                            setModalImageVisible(!isModalImageVisible)
-                            // setImage(`${item?.image}`)
-                        }}
-                        style={[
-                            styles.messageContainer,
-                            {
-                                alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
-                                backgroundColor: isUserDataSender ? "#DCF8C6" : '#fff',
-                            },
-                        ]}
-                    >
+                            onPress={() => {
+                                setSelectedMessage(item)
+                                setModalImageVisible(!isModalImageVisible)
+                                // setImage(`${item?.image}`)
+                            }}
+                            style={[
+                                styles.messageContainer,
+                                {
+                                    alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
+                                    backgroundColor: isUserDataSender ? "#DCF8C6" : '#fff',
+                                },
+                            ]}
+                        >
 
-                        {item?.text ? (
-                            item?.image ? (
-                                <View>
-                                    <Image source={{ uri: `${item?.image}` }} style={{ width: 200, height: 200 }} />
+                            {item?.text ? (
+                                item?.image ? (
+                                    <View>
+                                        <Image source={{ uri: `${item?.image}` }} style={{ width: 200, height: 200 }} />
+                                        <Text style={styles.messageText}>{item?.text}</Text>
+                                    </View>
+                                ) : (
                                     <Text style={styles.messageText}>{item?.text}</Text>
-                                </View>
-                            ) : (
-                                <Text style={styles.messageText}>{item?.text}</Text>
-                            )
+                                )
 
-                        ) : (
-                            <Image source={{ uri: `${item?.image}` }} style={{ width: 200, height: 200 }} />
-                        )}
-                        <Text style={styles.timeText}>
-                            {formatTime(item?.createdAt)}
-                        </Text>
-                    </TouchableOpacity>
+                            ) : (
+                                <Image source={{ uri: `${item?.image}` }} style={{ width: 200, height: 200 }} />
+                            )}
+                            <Text style={styles.timeText}>
+                                {formatTime(item?.createdAt)}
+                            </Text>
+                        </TouchableOpacity>
                     ) : (
                         <TouchableOpacity
                             style={[
@@ -306,32 +306,32 @@ const MessageScreen = ({ route, navigation }: any) => {
             </View >
         );
     };
-    // const permisionFunction = async () => {
-    //     // here is how you can get the camera permission
-    //     const cameraPermission = await ImagePicker.useCameraPermissions();
+    const permisionFunction = async () => {
+        // here is how you can get the camera permission
+        const cameraPermission = await ImagePicker.useCameraPermissions();
 
-    //     setCameraPermission(cameraPermission.status === 'granted');
+        setCameraPermission(cameraPermission.status === 'granted');
 
-    //     const imagePermission = await ImagePicker.getMediaLibraryPermissionsAsync();
-    //     console.log(imagePermission.status);
+        const imagePermission = await ImagePicker.getMediaLibraryPermissionsAsync();
+        console.log(imagePermission.status);
 
-    //     setGalleryPermission(imagePermission.status === 'granted');
+        setGalleryPermission(imagePermission.status === 'granted');
 
-    //     if (
-    //         imagePermission.status !== 'granted' &&
-    //         cameraPermission.status !== 'granted'
-    //     ) {
-    //         alert('Permission for media access needed.');
-    //     }
-    // };
-    // useEffect(() => {
-    //     permisionFunction();
-    // }, []);
+        if (
+            imagePermission.status !== 'granted' &&
+            cameraPermission.status !== 'granted'
+        ) {
+            alert('Permission for media access needed.');
+        }
+    };
+    useEffect(() => {
+        permisionFunction();
+    }, []);
 
 
     return (
         <View style={styles.container}>
-            <View style={{ alignItems: "center", height: 60, flexDirection: "row", left: 10, gap: 15 }}>
+            <View style={{ alignItems: "center", height: 60, flexDirection: "row", left: 10, gap: 10 }}>
                 <MaterialIcons
                     onPress={() => navigation.goBack()}
                     name="arrow-back-ios"
@@ -351,27 +351,37 @@ const MessageScreen = ({ route, navigation }: any) => {
                         gap: 10
                     }}>
 
-                    <View style={{ left: 10, bottom: 5 }}>
+                    <View style={{ bottom: 5 }}>
                         {groupAvatar && (
-                            <View style={styles.conversationImage}>
                                 <View style={{
-                                    flex: 1,
-                                    padding: 1,
+                                    width: 50,
+                                    height: 50,
+                                    borderRadius: 50,
+                                    marginRight: 10,
                                 }}>
-                                    <Image
-                                        source={{ uri: groupAvatar }}
-                                        style={{
-                                            width: 50, height: 50, borderRadius: 30
-                                        }}
-                                    />
+                                    <View style={{
+                                        flex: 1,
+                                        padding: 1,
+                                    }}>
+                                        <Image
+                                            source={{ uri: groupAvatar }}
+                                            style={{
+                                                width: 50, height: 50, borderRadius: 30
+                                            }}
+                                        />
+                                    </View>
                                 </View>
-                            </View>
-                        )
+                            )
                             ||
                             (
                                 (members.length > 1)
                                     ? (
-                                        <View style={styles.conversationImage}>
+                                        <View style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            marginRight: 10,
+                                        }}>
                                             <View style={{
                                                 flex: 1,
                                                 padding: 1,
@@ -379,9 +389,10 @@ const MessageScreen = ({ route, navigation }: any) => {
                                                 <Image
                                                     source={{ uri: userData.profilePicture }}
                                                     style={{
+                                                        right: 10, top: 15,
                                                         width: 40, height: 40,
                                                         resizeMode: "cover",
-                                                        borderRadius: 30,
+                                                        borderRadius: 50,
                                                         borderColor: "#f3f4fb",
                                                         borderWidth: 2
                                                     }}
@@ -396,10 +407,10 @@ const MessageScreen = ({ route, navigation }: any) => {
                                                 <Image
                                                     source={{ uri: conversationImage[0] }}
                                                     style={{
-                                                        right: 15, bottom: 10,
+                                                        left: 10, bottom: 25,
                                                         width: 40, height: 40,
                                                         resizeMode: "cover",
-                                                        borderRadius: 30,
+                                                        borderRadius: 50,
                                                         borderColor: "#f3f4fb",
                                                         borderWidth: 2
                                                     }}
@@ -407,7 +418,12 @@ const MessageScreen = ({ route, navigation }: any) => {
                                             </View>
                                         </View>
                                     ) : (
-                                        <View style={styles.conversationImage}>
+                                        <View style={{
+                                            width: 50,
+                                            height: 50,
+                                            borderRadius: 50,
+                                            marginRight: 10,
+                                        }}>
                                             <View style={{
                                                 flex: 1,
                                                 padding: 1,
@@ -426,14 +442,12 @@ const MessageScreen = ({ route, navigation }: any) => {
 
                     </View>
 
-
-
                     {groupName &&
-                        <Text style={{ marginLeft: 5, fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
+                        <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
                             {groupName}
                         </Text>
                         ||
-                        <Text style={{ marginLeft: 5, fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
+                        <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
                             {members.map(member => member.username).join(', ')}
                         </Text>
                     }
@@ -453,7 +467,7 @@ const MessageScreen = ({ route, navigation }: any) => {
                     refreshing={isLoading}
                     renderItem={(item) => renderMessageItem(item)}
                     data={message}
-                // inverted
+                    // inverted
                 />
             </View>
             <View
@@ -478,49 +492,51 @@ const MessageScreen = ({ route, navigation }: any) => {
                 )}
                 {image &&
                     <Feather name="x-circle"
-                        size={30}
-                        onPress={() => { setImage(``) }}
-                        color="#a3a3a3"
-                        style={{ left: 20, top: 10 }} />
+                             size={30}
+                             onPress={() => { setImage(``) }}
+                             color="#a3a3a3"
+                             style={{ left: 20, top: 10 }} />
                 }
             </View>
-            <View style={styles.footer}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+                <View style={styles.footer}>
 
-                <TextInput
-                    value={newMessage}
-                    multiline={true}
-                    placeholderTextColor="#888"
-                    onChangeText={(value) => {
-                        setNewMessage(value);
-                    }}
-                    style={styles.messageInput}
-                    placeholder="Nhập tin nhắn ..."
-                />
+                    <TextInput
+                        value={newMessage}
+                        multiline={true}
+                        placeholderTextColor="#888"
+                        onChangeText={(value) => {
+                            setNewMessage(value);
+                        }}
+                        style={styles.messageInput}
+                        placeholder="Nhập tin nhắn ..."
+                    />
 
-                <View
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 7,
-                        marginHorizontal: 8,
-                    }}
-                >
+                    <View
+                        style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 7,
+                            marginHorizontal: 8,
+                        }}
+                    >
+                        <TouchableOpacity
+
+                            style={styles.iconPhoto}>
+                        </TouchableOpacity>
+                    </View>
+                    <FontAwesome onPress={pickImageForMessage} name="picture-o" size={30} color="gray" />
+
                     <TouchableOpacity
-
-                        style={styles.iconPhoto}>
+                        onPress={sendMessage}
+                        style={styles.sendBtn}
+                    >
+                        <Text style={{ color: "white", fontWeight: "bold" }}>Send</Text>
                     </TouchableOpacity>
+
                 </View>
-                <FontAwesome onPress={pickImageForMessage} name="picture-o" size={30} color="gray" />
-
-                <TouchableOpacity
-                    onPress={sendMessage}
-                    style={styles.sendBtn}
-                >
-                    <Text style={{ color: "white", fontWeight: "bold" }}>Send</Text>
-                </TouchableOpacity>
-
-            </View>
-
+            </KeyboardAvoidingView>
             {/* see picture */}
             <Modal
                 animationType="fade"
@@ -549,11 +565,11 @@ const MessageScreen = ({ route, navigation }: any) => {
             >
                 <View style={styles.modalUpdateBackground}>
                     <TouchableOpacity style={styles.touchable}
-                        onPress={() => {
-                            setModalUpdateVisible(!isModalUpdateVisible)
-                            setNewGroupName("")
-                            setNewGroupAvatar("")
-                        }}>
+                                      onPress={() => {
+                                          setModalUpdateVisible(!isModalUpdateVisible)
+                                          setNewGroupName("")
+                                          setNewGroupAvatar("")
+                                      }}>
                     </TouchableOpacity>
                     <View style={styles.modalUpdate}>
                         <View
@@ -593,18 +609,22 @@ const MessageScreen = ({ route, navigation }: any) => {
 
 
                         <View style={{ marginVertical: 20 }}>
+                            {newGroupAvatar ?
+                                (
+                                    groupAvatar &&
+                                    <View style={styles.conversationImage}>
 
-                            {groupAvatar && (
-                                <Image
-                                    source={{ uri: newGroupAvatar || groupAvatar }}
-                                    style={{
-                                        width: 80,
-                                        height: 80,
-                                        borderRadius: 50
-                                    }}
-                                />
-                            )
-                                ||
+                                        <Image
+                                            source={{ uri: newGroupAvatar || groupAvatar }}
+                                            style={{
+                                                width: 70,
+                                                height: 70,
+                                                borderRadius: 50
+                                            }}
+                                        />
+                                    </View>
+                                )
+                                :
                                 (
                                     (members.length > 1)
                                     && (
@@ -616,8 +636,8 @@ const MessageScreen = ({ route, navigation }: any) => {
                                                 <Image
                                                     source={{ uri: userData.profilePicture }}
                                                     style={{
-                                                        right: 20, top: 20,
-                                                        width: 70, height: 70,
+                                                        right: 10, top: 20,
+                                                        width: 50, height: 50,
                                                         resizeMode: "cover",
                                                         borderRadius: 50,
                                                         borderColor: "#f3f4fb",
@@ -634,8 +654,8 @@ const MessageScreen = ({ route, navigation }: any) => {
                                                 <Image
                                                     source={{ uri: conversationImage[0] }}
                                                     style={{
-                                                        left: 10, bottom: 30,
-                                                        width: 70, height: 70,
+                                                        left: 10, bottom: 25,
+                                                        width: 50, height: 50,
                                                         resizeMode: "cover",
                                                         borderRadius: 50,
                                                         borderColor: "#f3f4fb",
@@ -647,16 +667,17 @@ const MessageScreen = ({ route, navigation }: any) => {
                                     )
                                 )
                             }
+
                             {
                                 newGroupAvatar &&
                                 <Feather name="x-circle" size={24}
-                                    onPress={() => setNewGroupAvatar("")}
-                                    style={{
-                                        position: "absolute",
-                                        right: 0,
-                                        backgroundColor: "#f3f4fa",
-                                        borderRadius: 50,
-                                    }}
+                                         onPress={() => setNewGroupAvatar("")}
+                                         style={{
+                                             position: "absolute",
+                                             right: 0,
+                                             backgroundColor: "#f3f4fa",
+                                             borderRadius: 50,
+                                         }}
                                 />
                             }
                         </View>
@@ -688,11 +709,11 @@ const MessageScreen = ({ route, navigation }: any) => {
                                 newGroupName &&
 
                                 <MaterialIcons name="cancel" size={25}
-                                    onPress={() => setNewGroupName("")}
-                                    style={{
-                                        position: "absolute",
-                                        right: 10,
-                                    }}
+                                               onPress={() => setNewGroupName("")}
+                                               style={{
+                                                   position: "absolute",
+                                                   right: 10,
+                                               }}
                                 />
                             }
 
@@ -712,7 +733,7 @@ const MessageScreen = ({ route, navigation }: any) => {
                     </View>
                 </View>
             </Modal >
-            <StatusBar style="dark" backgroundColor='white' />
+            <StatusBar backgroundColor='white' />
         </View >
     );
 };
@@ -745,10 +766,10 @@ const styles = StyleSheet.create({
         fontWeight: "bold"
     },
     conversationImage: {
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         borderRadius: 50,
-        marginRight: 10
+        marginRight: 10,
     },
     flatListContainer: {
         flex: 1,
