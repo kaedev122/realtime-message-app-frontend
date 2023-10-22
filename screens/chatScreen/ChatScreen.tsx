@@ -1,7 +1,6 @@
-import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, Modal } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, Modal, StatusBar } from 'react-native'
 import React, { useState, useEffect } from 'react'
 import { Entypo } from '@expo/vector-icons';
-import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-navigation';
 import { MaterialIcons, Ionicons, AntDesign } from '@expo/vector-icons';
 import { createNewGroupChat, createNewChat, getAllConversationApi } from '../../services/ChatService'
@@ -10,9 +9,8 @@ import { getAllFriendApi } from '../../services/FriendService';
 import Checkbox from 'expo-checkbox';
 import { showToast } from '../../component/showToast';
 import Toast from 'react-native-toast-message';
-
-
-const windownHeight = Dimensions.get('window').height
+import { blankAvatar } from '../friendScreen/FriendScreen';
+import Header from '../../component/Header';
 
 const ChatScreen = ({ navigation, route }: any) => {
     const { userData } = route.params
@@ -111,12 +109,9 @@ const ChatScreen = ({ navigation, route }: any) => {
 
     const renderConversationItem = ({ item }: any) => {
         const members = item.members.filter(member => member._id != userData._id);
-        const memberID = members.map(member => member._id)
         const numMembers = members.length
-        const memberImages = members.map(member => member.profilePicture)
-        let conversationImage = 'https://github.com/kaedev122/realtime-message-app-frontend/blob/huybe/assets/img/profileClone.jpg?raw=true'
-        const memberProfilePictures = memberImages.map(image => image || conversationImage);
-
+        const memberAvatar = members.map(member => member.profilePicture)
+        const memberProfilePictures = memberAvatar.map(image => image);
         return (
             <TouchableOpacity style={styles.conversation} onPress={() => {
                 navigation.navigate('MessageScreen', {
@@ -124,7 +119,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                     conversationId: item._id,
                     members: members,
                     isGroup: item.group,
-                    conversationImage: memberProfilePictures,
+                    memberAvatar: memberProfilePictures,
                     groupName: item?.groupName,
                     groupAvatar: item?.groupAvatar
                 });
@@ -155,7 +150,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                                             padding: 1,
                                         }}>
                                             <Image
-                                                source={{ uri: userData.profilePicture || conversationImage }}
+                                                source={userData.profilePicture ? { uri: userData.profilePicture } : blankAvatar}
                                                 style={{
                                                     right: 0, top: 20,
                                                     width: 40, height: 40,
@@ -173,7 +168,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                                             padding: 1,
                                         }}>
                                             <Image
-                                                source={{ uri: memberImages[0] || conversationImage }}
+                                                source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
                                                 style={{
                                                     right: 10, bottom: 0,
                                                     width: 40, height: 40,
@@ -192,7 +187,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                                             padding: 1,
                                         }}>
                                             <Image
-                                                source={{ uri: memberImages[0] || conversationImage }}
+                                                source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
                                                 style={{
                                                     width: "100%", height: "100%", borderRadius: 30
                                                 }}
@@ -230,7 +225,6 @@ const ChatScreen = ({ navigation, route }: any) => {
                     item.isSelected = !item.isSelected;
                     setFriends(updatedFriends);
 
-                    // Cập nhật selectedIds dựa trên trạng thái của item.isSelected
                     if (item.isSelected) {
                         setSelectedIds((prevSelectedIds) => [...prevSelectedIds, item?._id, userData?._id]);
                     } else {
@@ -254,7 +248,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                     }}
                 >
                     <Image
-                        source={{ uri: item?.profilePicture }}
+                        source={item?.profilePicture ? { uri: item?.profilePicture } : blankAvatar}
                         resizeMode="contain"
                         style={{
                             height: 50,
@@ -292,37 +286,36 @@ const ChatScreen = ({ navigation, route }: any) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.heading}>
+            <Header>
+                <Text style={{ fontSize: 20, fontWeight: "bold" }} >Đoạn chat </Text>
                 <View style={styles.header}>
-                    <Text style={{ fontSize: 20, fontWeight: "bold" }} >Đoạn chat </Text>
+                    <View style={{ width: "80%", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
+                        <TextInput
+                            value={textSearch}
+                            placeholder="Tìm kiếm"
+                            style={styles.searchInput}
+                            onChangeText={(value) => {
+                                setTextSearch(value);
+                            }}
+                        />
+                        {textSearch && (
+                            <MaterialIcons name="cancel" size={25}
+                                onPress={() => setTextSearch("")}
+                                style={{ position: "absolute", right: 10 }}
+                            />
+                        )}
+                    </View>
                     <TouchableOpacity
-                        style={{ position: "absolute", right: 20, width: 30, height: 30 }}
+                        style={{ width: 30, height: 30 }}
                         onPress={() => setModalVisible(!isModalVisible)}
                     >
                         <Entypo name="new-message" size={25} color="#428DFE" />
                     </TouchableOpacity>
                 </View>
-                <View style={{ width: "95%", flexDirection: "row", alignItems: "center" }}>
-                    <TextInput
-                        value={textSearch}
-                        placeholder="Tìm kiếm"
-                        style={styles.searchInput}
-                        onChangeText={(value) => {
-                            setTextSearch(value);
-                        }}
-                    />
-                    {textSearch && (
-                        <MaterialIcons name="cancel" size={25}
-                            onPress={() => setTextSearch("")}
-                            style={{
-                                position: "absolute",
-                                right: 10,
-                            }}
-                        />
-                    )}
-                </View>
-            </View>
+            </Header>
+
             <View style={styles.body}>
+
                 <FlatList
                     onRefresh={getConversation}
                     refreshing={isLoadingConversation}
@@ -337,7 +330,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                 />
             </View>
             <Modal
-                animationType="fade"
+                animationType="slide"
                 transparent={true}
                 statusBarTranslucent={true}
                 visible={isModalVisible}
@@ -424,7 +417,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                     </View>
                 </View>
             </Modal>
-            <StatusBar style="dark" />
+            <StatusBar backgroundColor='white' barStyle={'dark-content'} />
             <Toast />
         </SafeAreaView>
     );
@@ -433,10 +426,7 @@ const ChatScreen = ({ navigation, route }: any) => {
 export default ChatScreen
 
 const styles = StyleSheet.create({
-    // conversationImage: {
-    //     flex: 1,
-    //     flexDirection: 'row',
-    // },
+
     imageContainer: {
         flex: 1,
         padding: 2,
@@ -456,34 +446,31 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-    },
-    heading: {
-        width: "100%",
-        alignItems: "center",
-        backgroundColor: "#fafafa"
+        backgroundColor: 'white'
     },
     header: {
-        flexDirection: 'row',
-        alignItems: "center",
-        justifyContent: "center",
         width: "100%",
-        marginTop: windownHeight * 0.09
+        justifyContent: "space-around",
+        alignItems: "center",
+        flexDirection: "row",
     },
     searchInput: {
         backgroundColor: "#f3f4fc",
         borderRadius: 10,
-        padding: 10,
+        padding: 5,
         width: "100%",
-        marginVertical: 10,
-        fontSize: 20
+        marginVertical: 5,
+        fontSize: 15
     },
     body: {
         width: "100%",
-        marginHorizontal: 5,
+        margin: 5,
+        height: "80%"
     },
     conversation: {
         paddingVertical: 5,
-        flexDirection: "row"
+        flexDirection: "row",
+        alignItems: "center"
     },
     newChatModal: {
         flex: 1,

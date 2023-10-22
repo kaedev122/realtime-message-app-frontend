@@ -1,9 +1,9 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, StatusBar } from 'react-native';
 import { FontAwesome } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 import { deleteAccessToken, removeTokenFromAxios } from '../../services/TokenService';
 import { logoutApi } from '../../services/AuthService';
-
+import { blankAvatar } from '../friendScreen/FriendScreen';
 const UserProfileScreen = ({ navigation, route }: any) => {
   const { userData } = route.params
 
@@ -30,7 +30,7 @@ const UserProfileScreen = ({ navigation, route }: any) => {
 
       <View style={styles.userInfo}>
         <Image style={styles.userImage}
-          source={{ uri: userData?.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4" }}
+          source={userData?.profilePicture ? { uri: userData?.profilePicture } : blankAvatar}
 
         />
         <View style={styles.infor} >
@@ -77,6 +77,8 @@ const UserProfileScreen = ({ navigation, route }: any) => {
 
         {/* Thêm các mục quản lý khác ở đây */}
       </View>
+      <StatusBar backgroundColor='white' barStyle="dark-content" />
+
     </View>
   )
 }
@@ -102,7 +104,6 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginVertical: 20,
     backgroundColor: "black"
   },
   infor: {

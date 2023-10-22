@@ -11,11 +11,13 @@ import {
     Dimensions,
     StyleSheet
 } from "react-native";
-import {addFriendApi, getAllFriendApi, unFriendApi} from "../../services/FriendService";
+import { addFriendApi, getAllFriendApi, unFriendApi } from "../../services/FriendService";
 import { AntDesign } from '@expo/vector-icons';
 import { createNewChat } from "../../services/ChatService";
-import {showToast} from "../../component/showToast";
+import { showToast } from "../../component/showToast";
 import Toast from "react-native-toast-message";
+import Header from "../../component/Header";
+export const blankAvatar = require('../../assets/img/profileClone.jpg')
 
 const windownWidth = Dimensions.get('window').width
 const windownHeight = Dimensions.get('window').height
@@ -54,7 +56,7 @@ const FriendScreen = ({ navigation, route }: any) => {
         try {
             const response = await unFriendApi(id);
             if (response.status === 200) {
-                showToast("success","Hủy kết bạn thành công")
+                showToast("success", "Hủy kết bạn thành công")
                 toggleModal();
                 getAllFriend();
             }
@@ -83,7 +85,8 @@ const FriendScreen = ({ navigation, route }: any) => {
                     }}
                 >
                     <Image
-                        source={{ uri: item.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4" }}
+                        source={item.profilePicture ? { uri: item.profilePicture } : blankAvatar}
+
                         resizeMode="contain"
                         style={{
                             height: 50,
@@ -110,9 +113,12 @@ const FriendScreen = ({ navigation, route }: any) => {
 
     return (
         <SafeAreaView style={styles.container}>
+            <Header>
+                <Text style={{ fontSize: 20, fontWeight: "bold" }}>Bạn bè</Text>
+
+            </Header>
             <View style={styles.heading}>
                 <View style={styles.header}>
-                    <Text style={{ fontSize: 20, fontWeight: "bold" }}>Bạn bè</Text>
                 </View>
                 <View style={{ width: "95%", flexDirection: "row", alignItems: "center" }}>
                     <TextInput
@@ -197,7 +203,7 @@ const FriendScreen = ({ navigation, route }: any) => {
                     </View>
                 </Modal>
             </View>
-            <Toast/>
+            <Toast />
         </SafeAreaView>
     );
 };
