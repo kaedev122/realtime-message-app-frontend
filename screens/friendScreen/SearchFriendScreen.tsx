@@ -13,10 +13,11 @@ import {
     Button,
 } from "react-native";
 import { addFriendApi, getFriendByNameApi, getRandomFriendApi } from "../../services/FriendService";
-import {AntDesign} from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import { FontAwesome } from '@expo/vector-icons';
 import Toast from "react-native-toast-message";
-import {showToast} from "../../component/showToast";
+import { showToast } from "../../component/showToast";
+import { blankAvatar } from "./FriendScreen";
 const windownWidth = Dimensions.get('window').width
 const windownHeight = Dimensions.get('window').height
 
@@ -34,7 +35,7 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
         setIsLoading(true);
         try {
             const listData = await getRandomFriendApi();
-            const {data} = listData;
+            const { data } = listData;
             setListFriend(data.result);
         } catch (error) {
             console.error("Lỗi khi tải danh sách bạn:", error);
@@ -47,7 +48,7 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
         setIsLoading(true);
         try {
             const listData = await getFriendByNameApi({ username: searchValue });
-            const {data} = listData;
+            const { data } = listData;
             setListFriend(data);
         } catch (error) {
             console.error(error);
@@ -62,7 +63,7 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
             const response = await addFriendApi(id);
             if (response.status === 200) {
                 console.log("Kết bạn thành công!");
-                showToast("success","Kết bạn thành công")
+                showToast("success", "Kết bạn thành công")
             }
         } catch (error) {
             console.error("Lỗi khi kết bạn:", error);
@@ -90,7 +91,8 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                     }}
                 >
                     <Image
-                        source={{ uri: item.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4" }}
+                        source={item.profilePicture ? { uri: item.profilePicture } : blankAvatar}
+
                         resizeMode="contain"
                         style={{
                             height: 50,
@@ -192,7 +194,8 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                             <TouchableOpacity
                                 style={[styles.button, styles.redButton]}
                                 onPress={() => {
-                                    { addFriend(selectedUser?._id)
+                                    {
+                                        addFriend(selectedUser?._id)
                                         toggleModal();
                                     }
                                 }}
@@ -203,7 +206,7 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                     </View>
                 </View>
             </Modal>
-            <Toast/>
+            <Toast />
         </SafeAreaView>
     );
 };

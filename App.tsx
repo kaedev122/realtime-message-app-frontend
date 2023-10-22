@@ -31,12 +31,17 @@ const TabNavigator = ({ navigation, route }: any) => {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: '#fafafa',
+          backgroundColor: 'white',
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
           height: 70,
+          shadowColor: '#00000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.2,
+          elevation: 10,
+
         },
       }}>
       <Tab.Screen
@@ -59,25 +64,25 @@ const TabNavigator = ({ navigation, route }: any) => {
         component={SearchFriendScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-              <Ionicons name={focused ? 'search' : 'search-outline'} size={24}  />
+            <Ionicons name={focused ? 'search' : 'search-outline'} size={24} />
           ),
         }}
         initialParams={{
           userData
         }}
       />
-        <Tab.Screen
-            name="FriendScreen"
-            component={FriendScreen}
-            options={{
-                tabBarIcon: ({ focused }) => (
-                    <Ionicons name={focused ? 'md-people' : 'md-people-outline'} size={25} />
-                ),
-            }}
-            initialParams={{
-                userData
-            }}
-        />
+      <Tab.Screen
+        name="FriendScreen"
+        component={FriendScreen}
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <Ionicons name={focused ? 'md-people' : 'md-people-outline'} size={25} />
+          ),
+        }}
+        initialParams={{
+          userData
+        }}
+      />
       <Tab.Screen
         name="Setting"
         component={UserProfileScreen}
@@ -110,7 +115,7 @@ const App = () => {
         <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
 
         <Stack.Screen name="SearchFriendScreen" component={SearchFriendScreen} />
-          <Stack.Screen name="FriendScreen" component={FriendScreen} />
+        <Stack.Screen name="FriendScreen" component={FriendScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );
