@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, TextInput,  StyleSheet, TouchableOpacity, Image, Text } from 'react-native';
+import { View, TextInput, StyleSheet, TouchableOpacity, Image, Text, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { updateUserByIdApi } from '../../services/UserService';
+import { blankAvatar } from '../friendScreen/FriendScreen';
 
-const UpdateUserScreen = ({route}: any) => {
+const UpdateUserScreen = ({ navigation, route }: any) => {
   const { userData } = route.params;
   const [newUsername, setNewUsername] = useState(userData.username);
   const [newPassword, setNewPassword] = useState(userData.password);
@@ -19,7 +20,7 @@ const UpdateUserScreen = ({route}: any) => {
       } else {
         alert('Đã xảy ra lỗi khi cập nhật thông tin người dùng!');
       }
-    } catch (error:any) {
+    } catch (error: any) {
       if (error.response.status === 403) {
         alert('Bạn không có quyền cập nhật thông tin người dùng này!');
       } else {
@@ -31,14 +32,17 @@ const UpdateUserScreen = ({route}: any) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.touchable} onPress={() => { navigation.goBack() }}>
+        {/* Phần xung quanh modal để bắt sự kiện bấm ra ngoài */}
+      </TouchableOpacity>
       <View style={styles.userImage}>
         <TouchableOpacity>
-          <Image style={styles.mainImage}                source={ {uri: userData.profilePicture || "https://raw.githubusercontent.com/kaedev122/realtime-message-app-frontend/huybe/assets/img/user.png?fbclid=IwAR3H4i5FTak6CrmPVGwwDtwcvSfMpDK4SGT6ReNvWU2YQrnr1uHoMlKQ5A4"}}
+
+          <Image style={styles.mainImage}
+            source={userData?.profilePicture ? { uri: userData?.profilePicture } : blankAvatar}
           />
         </TouchableOpacity>
       </View>
-
-
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -52,20 +56,21 @@ const UpdateUserScreen = ({route}: any) => {
         value={newPassword}
         onChangeText={(text) => setNewPassword(text)}
       />
-          <View style={{ justifyContent: "center", alignItems: "center" }}>
-                    <TouchableOpacity  onPress={handleUpdate}>
-                        <LinearGradient
-                            colors={['#438875', '#99F2C8']}
-                            start={{ x: 0, y: 1 }}
-                            end={{ x: 1, y: 0 }}
-                            style={styles.button}
-                        >
-                            <Text style={styles.logInLabel}>Update</Text>
-                        </LinearGradient>
-                    </TouchableOpacity >
-    </View>
-    </View>
+      <View style={{ justifyContent: "center", alignItems: "center" }}>
+        <TouchableOpacity onPress={handleUpdate}>
+          <LinearGradient
+            colors={['#438875', '#99F2C8']}
+            start={{ x: 0, y: 1 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.button}
+          >
+            <Text style={styles.logInLabel}>Update</Text>
+          </LinearGradient>
+        </TouchableOpacity >
+      </View>
+      <StatusBar backgroundColor='black' barStyle="light-content" />
 
+    </View>
   );
 };
 
@@ -97,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center"
   },
-  userSubmit:{
+  userSubmit: {
     height: 40,
     marginBottom: 16,
     marginHorizontal: 20,
@@ -109,13 +114,20 @@ const styles = StyleSheet.create({
     width: 250,
     borderRadius: 50,
     padding: 10
-},
-logInLabel: {
+  },
+  logInLabel: {
     color: "black",
     fontWeight: "700",
     textAlign: "center",
     fontSize: 18
-},
+  },
+  touchable: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
 });
 
 export default UpdateUserScreen;
