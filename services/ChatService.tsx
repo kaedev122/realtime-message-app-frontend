@@ -18,6 +18,7 @@ export const getMessageOfConversationApi = (id: string) => {
     })
 }
 
+
 export const sendMessageAPI = (formData) => {
     return axios.post(
         BASE_URL.concat(`/chat/m/`),

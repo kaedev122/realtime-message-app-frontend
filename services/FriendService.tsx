@@ -17,6 +17,7 @@ export const getRandomFriendApi = () => {
     });
 };
 
+
 export const getFriendByNameApi = (username: { username: string }) => {
     return  axios({
         method: "GET",
