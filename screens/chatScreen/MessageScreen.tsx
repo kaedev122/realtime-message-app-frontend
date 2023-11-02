@@ -56,6 +56,7 @@ const MessageScreen = ({ route, navigation }: any) => {
     const [image, setImage] = useState<string>('');
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
+    const socketRef = useRef();
 
     const openCamera = async () => {
         const granted = await PermissionsAndroid.request(
@@ -85,9 +86,8 @@ const MessageScreen = ({ route, navigation }: any) => {
     useEffect(() => {
         socket.on("getMessage", (data) => {
             setArrivalMessage(data)
-            console.log("-------------------------")
         })
-    }, [])
+    }, [socket])
 
     useEffect(() => {
         if (arrivalMessage && conversationId == arrivalMessage.conversationId) {
@@ -161,7 +161,7 @@ const MessageScreen = ({ route, navigation }: any) => {
             type: "image/jpeg",
         })
         try {
-            const { data } = await sendMessageAPI(formData);
+            const {data, status} = await sendMessageAPI(formData);
             const socketMessage = {
                 _id: data._id,
                 conversationId: data.conversationId,
@@ -175,10 +175,11 @@ const MessageScreen = ({ route, navigation }: any) => {
                 },
                 members: members,
             };
-
-            socket.emit("sendMessage", socketMessage);
-            setNewMessage('');
-            setImage("")
+            if (status == 200) {
+                socket.emit("sendMessage", socketMessage);
+                setNewMessage('');
+                setImage("")
+            }
             Keyboard.dismiss
 
         } catch (err) {

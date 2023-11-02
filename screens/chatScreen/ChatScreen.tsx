@@ -40,12 +40,15 @@ const ChatScreen = ({ navigation, route }: any) => {
     useEffect(() => {
         getConversation();
         getAllFriend();
-        socket?.on("getUsersOnline", (data) => {
+    }, [socket]);
+
+    useEffect(() => {
+        socket.on("getUsersOnline", (data) => {
             console.log("-----------Online users--------------", data)
             setOnlineUsers(data)
         })
-    }, []);
-
+    }, [socket]);
+    
     useEffect(() => {
         handleSearch(textSearch);
     }, [textSearch]);
