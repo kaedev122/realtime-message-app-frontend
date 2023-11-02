@@ -21,9 +21,9 @@ import { SafeAreaView } from 'react-navigation';
 import moment from 'moment';
 import * as ImagePicker from 'expo-image-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import { io } from "socket.io-client";
 import { blankAvatar } from '../friendScreen/FriendScreen';
 import { formatDay, formatTime } from '../../component/formatTime';
+import { socket } from "../../utils/socket";
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -47,10 +47,8 @@ const MessageScreen = ({ route, navigation }: any) => {
     const [newGroupAvatar, setNewGroupAvatar] = useState<string>(groupAvatar);
     //
     const [message, setMessage] = useState([]);
-    console.log(message)
     const [newMessage, setNewMessage] = useState<string>('');
     const [arrivalMessage, setArrivalMessage] = useState(null);
-    const socket = useRef();
     //
     const [selectedMessage, setSelectedMessage] = useState([])
     const [isModalImageVisible, setModalImageVisible] = useState(false);
@@ -58,6 +56,7 @@ const MessageScreen = ({ route, navigation }: any) => {
     const [image, setImage] = useState<string>('');
     const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
+    const socketRef = useRef();
 
     const openCamera = async () => {
         const granted = await PermissionsAndroid.request(
@@ -84,18 +83,11 @@ const MessageScreen = ({ route, navigation }: any) => {
         getMessageOfConversation(conversationId);
     }, []);
 
-    // useEffect(() => {
-    //     socket.current = io("https://realtime-chat-app-server-88535f0d324c.herokuapp.com");
-    //     socket.current.emit("addUser", userData._id);
-    //     console.log("========================")
-    // }, []);
-
-    // useEffect(() => {
-    //     socket.current.on("getMessage", (data) => {
-    //         setArrivalMessage(data)
-    //         console.log("-------------------------")
-    //     })
-    // }, [])
+    useEffect(() => {
+        socket.on("getMessage", (data) => {
+            setArrivalMessage(data)
+        })
+    }, [socket])
 
     useEffect(() => {
         if (arrivalMessage && conversationId == arrivalMessage.conversationId) {
@@ -169,7 +161,7 @@ const MessageScreen = ({ route, navigation }: any) => {
             type: "image/jpeg",
         })
         try {
-            const { data } = await sendMessageAPI(formData);
+            const {data, status} = await sendMessageAPI(formData);
             const socketMessage = {
                 _id: data._id,
                 conversationId: data.conversationId,
@@ -183,10 +175,11 @@ const MessageScreen = ({ route, navigation }: any) => {
                 },
                 members: members,
             };
-
-            // socket.current.emit("sendMessage", socketMessage);
-            setNewMessage('');
-            setImage("")
+            if (status == 200) {
+                socket.emit("sendMessage", socketMessage);
+                setNewMessage('');
+                setImage("")
+            }
             Keyboard.dismiss
 
         } catch (err) {

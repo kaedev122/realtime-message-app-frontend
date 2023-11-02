@@ -13,6 +13,7 @@ import Toast from 'react-native-toast-message';
 import { blankAvatar } from '../friendScreen/FriendScreen';
 import Header from '../../component/Header';
 import { formatDay, formatTimeLatestMsg } from '../../component/formatTime';
+import { socket } from "../../utils/socket";
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -34,13 +35,20 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [dataFriendSearch, setDataFriendSearch] = useState([]);
 
     const [isModalVisible, setModalVisible] = useState(false);
-
+    const [onlineUsers, setOnlineUsers] = useState([])
 
     useEffect(() => {
         getConversation();
         getAllFriend();
-    }, []);
+    }, [socket]);
 
+    useEffect(() => {
+        socket.on("getUsersOnline", (data) => {
+            console.log("-----------Online users--------------", data)
+            setOnlineUsers(data)
+        })
+    }, [socket]);
+    
     useEffect(() => {
         handleSearch(textSearch);
     }, [textSearch]);
