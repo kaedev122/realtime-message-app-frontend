@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Platform } from 'react-native'
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -18,12 +19,13 @@ import FriendScreen from "./screens/friendScreen/FriendScreen";
 ///
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
+import Media from './component/Media';
 
 ///
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const TabNavigator = ({ navigation, route }: any) => {
+function TabNavigator({ route, navigation }: any) {
   const { userData } = route.params
   return (
     <Tab.Navigator
@@ -36,7 +38,7 @@ const TabNavigator = ({ navigation, route }: any) => {
           bottom: 0,
           left: 0,
           right: 0,
-          height: 70,
+          height: 80,
           shadowColor: '#00000',
           shadowOffset: { width: 0, height: 10 },
           shadowOpacity: 0.2,
@@ -50,8 +52,9 @@ const TabNavigator = ({ navigation, route }: any) => {
         options={{
           tabBarIcon: ({ focused }) => (
             <Ionicons
-              name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'}
+              name={'chatbubble'}
               size={25}
+              color={focused ? '#FF9134' : 'gray'}
             />
           ),
         }}
@@ -64,7 +67,9 @@ const TabNavigator = ({ navigation, route }: any) => {
         component={SearchFriendScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <Ionicons name={focused ? 'search' : 'search-outline'} size={24} />
+            <Ionicons name={'search'}
+              color={focused ? '#FF9134' : 'gray'}
+              size={24} />
           ),
         }}
         initialParams={{
@@ -76,7 +81,9 @@ const TabNavigator = ({ navigation, route }: any) => {
         component={FriendScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <Ionicons name={focused ? 'md-people' : 'md-people-outline'} size={25} />
+            <Ionicons name={'md-people'}
+              color={focused ? '#FF9134' : 'gray'}
+              size={25} />
           ),
         }}
         initialParams={{
@@ -88,7 +95,9 @@ const TabNavigator = ({ navigation, route }: any) => {
         component={UserProfileScreen}
         options={{
           tabBarIcon: ({ focused }) => (
-            <FontAwesome name={focused ? 'user' : 'user-o'} size={24} />
+            <FontAwesome name={'user'}
+              color={focused ? '#FF9134' : 'gray'}
+              size={24} />
           ),
         }}
         initialParams={{
@@ -102,13 +111,14 @@ const TabNavigator = ({ navigation, route }: any) => {
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false, }}>
         <Stack.Screen name="HomeTabs" component={TabNavigator} />
+        <Stack.Screen name="Media" component={Media} />
 
         <Stack.Screen name="LoginScreen" component={LoginScreen} />
         <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
 
-        <Stack.Screen name="MessageScreen" component={MessageScreen} />
+        <Stack.Screen name="MessageScreen" component={MessageScreen} options={{ headerShown: true }} />
         <Stack.Screen name="NewChat" component={NewChat} />
 
         <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
