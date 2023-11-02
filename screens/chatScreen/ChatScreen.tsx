@@ -14,10 +14,10 @@ import { blankAvatar } from '../friendScreen/FriendScreen';
 import Header from '../../component/Header';
 import { formatDay, formatTimeLatestMsg } from '../../component/formatTime';
 import { socket } from "../../utils/socket";
+import { useUnreadMessages, UnreadMessagesProvider } from '../../component/UnreadMessages ';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
-const screenDimensions = Dimensions.get('screen');
 
 const ChatScreen = ({ navigation, route }: any) => {
     const { userData } = route.params
@@ -26,7 +26,6 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const numSelected = selectedIds.filter(index => index != userData._id).length
     const [conversation, setConversation] = useState([]);
-    // console.log(conversation)
     const [textSearch, setTextSearch] = useState<string>("");
     const [dataSearch, setDataSearch] = useState([]);
     //
@@ -37,18 +36,27 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [isModalVisible, setModalVisible] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([])
 
+    const { setUnreadMessages } = useUnreadMessages()
+    const isWatched = conversation.filter(
+        conversation => conversation.watched.includes(userData._id)
+    );
+    const countNotWatched = conversation.length - isWatched.length;
+    useEffect(() => {
+        setUnreadMessages(countNotWatched);
+    }, [countNotWatched]);
+
     useEffect(() => {
         getConversation();
         getAllFriend();
     }, [socket]);
 
     useEffect(() => {
-        socket.on("getUsersOnline", (data) => {
+        socket?.on("getUsersOnline", (data) => {
             console.log("-----------Online users--------------", data)
             setOnlineUsers(data)
         })
     }, [socket]);
-    
+
     useEffect(() => {
         handleSearch(textSearch);
     }, [textSearch]);
@@ -83,7 +91,6 @@ const ChatScreen = ({ navigation, route }: any) => {
                 const dateB = new Date(b.lastestMessage.createdAt);
                 return dateB - dateA;
             });
-            console.log(sortedData)
             setConversation(sortedData);
         } catch (error: any) {
             alert(error.response);
@@ -146,11 +153,6 @@ const ChatScreen = ({ navigation, route }: any) => {
         }
     }
 
-    const isWatched = conversation.filter(
-        conversation => conversation.watched.includes(userData._id)
-    )
-    const countNotWatched = conversation.length - isWatched.length;
-    console.log(countNotWatched)
 
     const renderConversationItem = ({ item }: any) => {
         const members = item.members.filter(member => member._id != userData._id);
@@ -249,21 +251,18 @@ const ChatScreen = ({ navigation, route }: any) => {
                 </View>
 
                 <View style={{
-                    borderBottomColor: "#ededed",
-                    borderBottomWidth: 1,
                     width: "100%",
-                    height: 60,
                     flexDirection: "column",
                     justifyContent: "center"
                 }}>
                     <View>
                         {item?.groupName
                             ? (
-                                <Text style={{ fontSize: 17, fontWeight: isWatched ? "normal" : "bold" }}>
+                                <Text style={{ fontSize: 20, fontWeight: isWatched ? "normal" : "bold" }}>
                                     {item?.groupName}
                                 </Text>
                             ) : (
-                                <Text style={{ fontSize: 17, fontWeight: isWatched ? "normal" : "bold" }}>
+                                <Text style={{ fontSize: 20, fontWeight: isWatched ? "normal" : "bold" }}>
                                     {members.map(member => member.username).join(', ')}
                                 </Text>
                             )
@@ -274,7 +273,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                             {item?.lastestMessage.image ? (
                                 <Text
                                     style={{
-                                        fontSize: 13,
+                                        fontSize: 15,
                                         color: isWatched ? "gray" : "black",
                                         fontWeight: isWatched ? "normal" : "bold",
                                     }}>
@@ -286,7 +285,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                                 <Text numberOfLines={1}
                                     ellipsizeMode={"tail"}
                                     style={{
-                                        fontSize: 13,
+                                        fontSize: 15,
                                         color: isWatched ? "gray" : "black",
                                         fontWeight: isWatched ? "normal" : "bold",
 
@@ -564,12 +563,12 @@ const styles = StyleSheet.create({
 
     },
     conversationImage: {
-        width: 55,
-        height: 55,
+        width: 60,
+        height: 60,
         borderRadius: 50,
         marginRight: 10,
         marginLeft: 10,
-        flexDirection: 'row'
+        flexDirection: 'row',
     },
     container: {
         height: windowHeight,
@@ -591,16 +590,19 @@ const styles = StyleSheet.create({
         fontSize: 20,
     },
     body: {
+        marginTop: 10,
         width: "100%",
         height: "100%",
     },
     conversation: {
         flexDirection: "row",
         alignItems: "center",
-        height: 60,
+        height: 70,
         margin: 5,
         marginHorizontal: 10,
         width: windowWidth,
+        marginBottom: 0
+
     },
     newChatModal: {
         flex: 1,
