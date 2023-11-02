@@ -9,6 +9,7 @@ import Background from "../../component/Background";
 import { showToast } from "../../component/showToast";
 import { validateEmail } from "../../utils/validate";
 import { getUserDataApi } from '../../services/UserService';
+import { socket, initializeSocket } from "../../utils/socket";
 
 const LoginScreen = ({ navigation }: any) => {
 
@@ -54,6 +55,8 @@ const LoginScreen = ({ navigation }: any) => {
                 const userData = await getUserData()
                 console.log(userData)
                 navigation.navigate("HomeTabs", { userData: userData })
+                initializeSocket()
+                socket.emit("addUser", userData._id);
             }
         } catch (error) {
             alert(error)
