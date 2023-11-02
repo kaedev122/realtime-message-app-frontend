@@ -17,12 +17,14 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         width: "100%",
-        elevation: 10,
         height: 80,
-        shadowColor: '#00000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.2,
+        // Để thêm bóng mờ, sử dụng các thuộc tính shadow
+        shadowColor: 'gray', // Màu bóng
+        shadowOffset: { width: 0, height: 6 }, // Điểm bắt đầu của bóng
+        shadowOpacity: 0.3, // Độ trong suốt của bóng
+        elevation: 4, // Elevation cho Android (tùy chọn)
         position: 'relative',
     },
+
 })
 
