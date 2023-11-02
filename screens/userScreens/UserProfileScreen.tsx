@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { deleteAccessToken, removeTokenFromAxios } from '../../services/TokenService';
 import { logoutApi } from '../../services/AuthService';
 import { blankAvatar } from '../friendScreen/FriendScreen';
+import { socket } from "../../utils/socket";
+
 const UserProfileScreen = ({ navigation, route }: any) => {
   const { userData } = route.params
 
@@ -16,6 +18,7 @@ const UserProfileScreen = ({ navigation, route }: any) => {
         removeTokenFromAxios()
         navigation.navigate("LoginScreen")
         console.log(accessToken)
+        socket.emit('forceDisconnect')
       }
     } catch (error) {
       console.log(error)
