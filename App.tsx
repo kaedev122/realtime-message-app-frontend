@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Platform } from 'react-native'
+import { Platform, View, Text } from 'react-native'
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -20,6 +20,7 @@ import FriendScreen from "./screens/friendScreen/FriendScreen";
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
 import Media from './component/Media';
+import { UnreadMessagesProvider, useUnreadMessages } from './component/UnreadMessages ';
 
 ///
 const Stack = createStackNavigator();
@@ -27,39 +28,63 @@ const Tab = createBottomTabNavigator();
 
 function TabNavigator({ route, navigation }: any) {
   const { userData } = route.params
+  const { unreadMessages } = useUnreadMessages();
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: 'white',
+          backgroundColor: '#fff',
           position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,
           height: 80,
-          shadowColor: '#00000',
-          shadowOffset: { width: 0, height: 10 },
-          shadowOpacity: 0.2,
-          elevation: 10,
+          borderTopColor: "#f3f4fdb3",
+          borderTopWidth: 0
 
         },
       }}>
       <Tab.Screen
         name="Chat"
         component={ChatScreen}
-        options={{
+        options={({ route }) => ({
           tabBarIcon: ({ focused }) => (
-            <Ionicons
-              name={'chatbubble'}
-              size={25}
-              color={focused ? '#FF9134' : 'gray'}
-            />
+            <View style={{ margin: 5 }}>
+              <Ionicons
+                name={'chatbubble'}
+                size={30}
+                color={focused ? '#FF9134' : 'gray'}
+              />
+              {unreadMessages > 0 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    right: -8,
+                    top: -7,
+                    backgroundColor: 'red',
+                    borderRadius: 50,
+                    borderWidth: 2,
+                    borderColor: "#fff",
+                    width: 20,
+                    height: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ color: 'white', fontSize: 12 }}>
+                    {unreadMessages}
+                  </Text>
+                </View>
+              )}
+            </View>
           ),
-        }}
+        })}
         initialParams={{
-          userData
+          userData,
+          unreadMessages,
         }}
       />
       <Tab.Screen
@@ -69,7 +94,7 @@ function TabNavigator({ route, navigation }: any) {
           tabBarIcon: ({ focused }) => (
             <Ionicons name={'search'}
               color={focused ? '#FF9134' : 'gray'}
-              size={24} />
+              size={30} />
           ),
         }}
         initialParams={{
@@ -83,7 +108,7 @@ function TabNavigator({ route, navigation }: any) {
           tabBarIcon: ({ focused }) => (
             <Ionicons name={'md-people'}
               color={focused ? '#FF9134' : 'gray'}
-              size={25} />
+              size={30} />
           ),
         }}
         initialParams={{
@@ -97,7 +122,7 @@ function TabNavigator({ route, navigation }: any) {
           tabBarIcon: ({ focused }) => (
             <FontAwesome name={'user'}
               color={focused ? '#FF9134' : 'gray'}
-              size={24} />
+              size={30} />
           ),
         }}
         initialParams={{
@@ -110,24 +135,27 @@ function TabNavigator({ route, navigation }: any) {
 
 const App = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false, }}>
-        <Stack.Screen name="HomeTabs" component={TabNavigator} />
-        <Stack.Screen name="Media" component={Media} />
+    <UnreadMessagesProvider>
+      {/* ... Màn hình chính và định tuyến khác của bạn */}
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false, }}>
+          <Stack.Screen name="HomeTabs" component={TabNavigator} />
+          <Stack.Screen name="Media" component={Media} />
 
-        <Stack.Screen name="LoginScreen" component={LoginScreen} />
-        <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+          <Stack.Screen name="LoginScreen" component={LoginScreen} />
+          <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
 
-        <Stack.Screen name="MessageScreen" component={MessageScreen} options={{ headerShown: true }} />
-        <Stack.Screen name="NewChat" component={NewChat} />
+          <Stack.Screen name="MessageScreen" component={MessageScreen} options={{ headerShown: true }} />
+          <Stack.Screen name="NewChat" component={NewChat} />
 
-        <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
-        <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
+          <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
+          <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
 
-        <Stack.Screen name="SearchFriendScreen" component={SearchFriendScreen} />
-        <Stack.Screen name="FriendScreen" component={FriendScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen name="SearchFriendScreen" component={SearchFriendScreen} />
+          <Stack.Screen name="FriendScreen" component={FriendScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </UnreadMessagesProvider>
   );
 }
 

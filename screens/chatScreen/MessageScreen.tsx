@@ -84,7 +84,7 @@ const MessageScreen = ({ route, navigation }: any) => {
     }, []);
 
     useEffect(() => {
-        socket.on("getMessage", (data) => {
+        socket?.on("getMessage", (data) => {
             setArrivalMessage(data)
         })
     }, [socket])
@@ -161,7 +161,7 @@ const MessageScreen = ({ route, navigation }: any) => {
             type: "image/jpeg",
         })
         try {
-            const {data, status} = await sendMessageAPI(formData);
+            const { data, status } = await sendMessageAPI(formData);
             const socketMessage = {
                 _id: data._id,
                 conversationId: data.conversationId,
@@ -176,7 +176,7 @@ const MessageScreen = ({ route, navigation }: any) => {
                 members: members,
             };
             if (status == 200) {
-                socket.emit("sendMessage", socketMessage);
+                socket?.emit("sendMessage", socketMessage);
                 setNewMessage('');
                 setImage("")
             }
@@ -226,8 +226,7 @@ const MessageScreen = ({ route, navigation }: any) => {
         const senderNameStyle = [styles.senderName, {
             alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
             position: "absolute",
-            left: 25,
-            bottom: 0
+            left: 30,
         }];
 
         let showSenderName = false;
@@ -242,79 +241,93 @@ const MessageScreen = ({ route, navigation }: any) => {
                             {formatDay(item?.createdAt)}
                         </Text>}
                 </View>
-
-                <View
-                >
-                    {showSenderName && isReceiver && (
-                        <View
-
-                        >
-                            <Image source={item?.sender.profilePicture ? { uri: item?.sender.profilePicture } : blankAvatar}
-                                style={{
-                                    width: 30,
-                                    height: 30,
-                                    borderRadius: 50,
-                                    position: "absolute",
-                                    top: 5
-                                }}
-                            />
-                            <Text style={senderNameStyle}>{senderName}</Text>
-                        </View>
-                    )}
-                    <TouchableOpacity
-                        onPress={() => {
-                            setSelectedMessage(item);
-                            setModalImageVisible(!isModalImageVisible);
-                            getImageSize(item?.image);
-                        }}
-                        style={[
-                            styles.messageContainer,
-                            {
-                                padding: item?.image ? 0 : 8,
-                                alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
-                                backgroundColor: isUserDataSender ? '#FF9134' : '#F5F5F5',
-                                marginLeft: 35
-
-                            },
-                        ]}
+                {showSenderName && isReceiver && (
+                    <View
+                        style={{ marginVertical: 20 }}
                     >
-                        {item?.text ? (
-                            <View>
-                                {item?.image && (
-                                    <Image
-                                        source={{ uri: item?.image }}
-                                        style={{
-                                            width: 200,
-                                            height: 200,
-                                        }}
-                                    />
-                                )}
-                                <Text style={{
-                                    color: isUserDataSender ? '#FFFFFF' : '#262626'
-                                }}>{item?.text}</Text>
-                            </View>
-                        ) : (
-                            <Image
-                                source={{ uri: item?.image }}
-                                style={{
-                                    width: 200,
-                                    height: 200,
-                                }}
-                            />
-                        )}
-                        <Text
+                        <Image source={item?.sender.profilePicture ? { uri: item?.sender.profilePicture } : blankAvatar}
                             style={{
-                                textAlign: isUserDataSender ? "right" : "left",
-                                fontSize: 11,
-                                color: isUserDataSender ? "white" : "gray",
-                                paddingHorizontal: item?.image ? 10 : 0
+                                width: 30,
+                                height: 30,
+                                borderRadius: 50,
+                                position: "absolute",
+                                top: 30,
+                                left: 5
                             }}
-                        >
-                            {formatTime(item?.createdAt)}
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            </View >
+                        />
+                        {isGroup &&
+                            <Text style={senderNameStyle}>{senderName}</Text>
+                        }
+                    </View>
+                )}
+                <TouchableOpacity
+                    onPress={() => {
+                        setSelectedMessage(item);
+                        setModalImageVisible(!isModalImageVisible);
+                        getImageSize(item?.image);
+                    }}
+
+                    style={[
+                        styles.messageContainer,
+                        {
+                            padding: item?.image ? 0 : 7,
+                            alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
+                            backgroundColor: isUserDataSender ? '#FF9134' : '#F5F5F5',
+                            marginLeft: 40,
+
+                        },
+                    ]}
+                >
+                    {item?.text ? (
+                        <View>
+                            {item?.image && (
+                                <Image
+                                    source={{ uri: item?.image }}
+                                    style={{
+                                        width: 200,
+                                        height: 200,
+                                        borderRadius: 10
+                                    }}
+                                />
+                            )}
+                            <Text style={{
+                                color: isUserDataSender ? '#FFFFFF' : '#262626',
+                                fontSize: 18,
+                                padding: 2
+                            }}>{item?.text}</Text>
+                        </View>
+                    ) : (
+                        <Image
+                            source={{ uri: item?.image }}
+                            style={{
+                                width: 200,
+                                height: 200,
+                                borderRadius: 10
+                            }}
+                        />
+                    )}
+
+                    <Text
+                        style={[{
+                            textAlign: isUserDataSender ? "right" : "left",
+                            fontSize: 13,
+                            color: (item?.image && !item?.text || isUserDataSender) ? "white" : "gray",
+                            paddingHorizontal: 3
+                        }, item?.image && !item?.text && {
+                            position: "absolute",
+                            right: 5,
+                            bottom: 0,
+                            height: 20,
+                            paddingHorizontal: 10,
+                            backgroundColor: "#736a616b",
+                            overflow: 'hidden',
+                            borderRadius: 10
+                        }]}
+                    >
+                        {formatTime(item?.createdAt)}
+                    </Text>
+                </TouchableOpacity>
+            </View>
         );
     };
 
@@ -823,8 +836,9 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: 20,
         paddingHorizontal: 10,
+        paddingTop: 7,
         backgroundColor: "#FAFAFA",
-        fontSize: 15,
+        fontSize: 18,
         maxHeight: 150,
         minHeight: 40,
 
