@@ -11,6 +11,13 @@ const getAllConversationApi = () => {
     return conversations
 }
 
+const getConversationOf2UserAPI = (userId, friendId) => {
+    return axios({
+        method: "GET",
+        url: BASE_URL.concat(`/chat/c/${userId}/${friendId}`),
+    })
+}
+
 const getMessageOfConversationApi = (id: string) => {
     return axios({
         method: "GET",
@@ -70,5 +77,6 @@ export {
     createNewChat,
     createNewGroupChat,
     updateConversation,
-    updateWatched
+    updateWatched,
+    getConversationOf2UserAPI
 }
