@@ -7,9 +7,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { FontAwesome } from '@expo/vector-icons';
 ///
-import RegisterScreen from './screens/authScreen/RegisterScreen'
-import LoginScreen from './screens/authScreen/LoginScreen'
-///
 import ChatScreen from './screens/chatScreen/ChatScreen';
 import MessageScreen from './screens/chatScreen/MessageScreen';
 import NewChat from './screens/chatScreen/NewChat';
@@ -21,12 +18,14 @@ import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
 import Media from './component/Media';
 import { UnreadMessagesProvider, useUnreadMessages } from './component/UnreadMessages ';
+import AuthScreen from './screens/authScreen/AuthScreen';
+import OnlineUser from './component/conversations/OnlineUser';
 
 ///
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function TabNavigator({ route, navigation }: any) {
+function TabNavigator({ route }: any) {
   const { userData } = route.params
   const { unreadMessages } = useUnreadMessages();
 
@@ -36,7 +35,7 @@ function TabNavigator({ route, navigation }: any) {
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          backgroundColor: '#fff',
+          backgroundColor: '#FFFFFF',
           position: 'absolute',
           bottom: 0,
           left: 0,
@@ -136,16 +135,15 @@ function TabNavigator({ route, navigation }: any) {
 const App = () => {
   return (
     <UnreadMessagesProvider>
-      {/* ... Màn hình chính và định tuyến khác của bạn */}
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="LoginScreen" screenOptions={{ headerShown: false, }}>
+        <Stack.Navigator initialRouteName="AuthScreen" screenOptions={{ headerShown: false, }}>
           <Stack.Screen name="HomeTabs" component={TabNavigator} />
           <Stack.Screen name="Media" component={Media} />
 
-          <Stack.Screen name="LoginScreen" component={LoginScreen} />
-          <Stack.Screen name="RegisterScreen" component={RegisterScreen} />
+          <Stack.Screen name="AuthScreen" component={AuthScreen} />
 
-          <Stack.Screen name="MessageScreen" component={MessageScreen} options={{ headerShown: true }} />
+
+          <Stack.Screen name="MessageScreen" component={MessageScreen} />
           <Stack.Screen name="NewChat" component={NewChat} />
 
           <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
@@ -153,6 +151,8 @@ const App = () => {
 
           <Stack.Screen name="SearchFriendScreen" component={SearchFriendScreen} />
           <Stack.Screen name="FriendScreen" component={FriendScreen} />
+
+
         </Stack.Navigator>
       </NavigationContainer>
     </UnreadMessagesProvider>

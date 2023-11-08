@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, Modal, StatusBar } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, Modal, StatusBar, ScrollView } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react'
-import { Entypo } from '@expo/vector-icons';
+import { Entypo, EvilIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-navigation';
 import { MaterialIcons, Ionicons, AntDesign } from '@expo/vector-icons';
 import { createNewGroupChat, createNewChat, getAllConversationApi, updateWatched } from '../../services/ChatService'
@@ -11,11 +11,12 @@ import Checkbox from 'expo-checkbox';
 import { showToast } from '../../component/showToast';
 import Toast from 'react-native-toast-message';
 import { blankAvatar } from '../friendScreen/FriendScreen';
-import Header from '../../component/Header';
+import Header from '../../component/conversations/Header';
 import { formatDay, formatTimeLatestMsg } from '../../component/formatTime';
 import { socket } from "../../utils/socket";
 import { useUnreadMessages, UnreadMessagesProvider } from '../../component/UnreadMessages ';
-
+import OnlineUser from '../../component/conversations/OnlineUser';
+import ModalNewGroupChat from '../../component/conversations/ModalNewGroupChat';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
@@ -32,10 +33,8 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [friendSearch, setFriendSearch] = useState<string>("");
     const [friends, setFriends] = useState([]);
     const [dataFriendSearch, setDataFriendSearch] = useState([]);
-
     const [isModalVisible, setModalVisible] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([])
-
     const { setUnreadMessages } = useUnreadMessages()
     const isWatched = conversation.filter(
         conversation => conversation.watched.includes(userData._id)
@@ -48,10 +47,10 @@ const ChatScreen = ({ navigation, route }: any) => {
     useEffect(() => {
         getConversation();
         getAllFriend();
-    }, [socket]);
+    }, []);
 
     useEffect(() => {
-        socket?.on("getUsersOnline", (data) => {
+        socket?.on("getUsersOnline", (data: React.SetStateAction<never[]>) => {
             console.log("-----------Online users--------------", data)
             setOnlineUsers(data)
         })
@@ -67,7 +66,6 @@ const ChatScreen = ({ navigation, route }: any) => {
 
     useFocusEffect(
         useCallback(() => {
-            // Gọi hàm getConverStation ở đây
             getConversation();
         }, [])
     );
@@ -86,12 +84,12 @@ const ChatScreen = ({ navigation, route }: any) => {
         try {
             const listData = await getAllConversationApi();
             const { data } = listData;
-            const sortedData = data.sort((a, b) => {
+            const sortedLatestMessage = data.sort((a: { lastestMessage: { createdAt: string | number | Date; }; }, b: { lastestMessage: { createdAt: string | number | Date; }; }) => {
                 const dateA = new Date(a.lastestMessage.createdAt);
                 const dateB = new Date(b.lastestMessage.createdAt);
                 return dateB - dateA;
             });
-            setConversation(sortedData);
+            setConversation(sortedLatestMessage);
         } catch (error: any) {
             alert(error.response);
         }
@@ -100,27 +98,28 @@ const ChatScreen = ({ navigation, route }: any) => {
     };
 
     const newGroupChat = async () => {
-        try {
-            if (selectedIds.map(index => index != userData._id)) return
+        if (numSelected > 1) {
+            try {
+                const res = await createNewGroupChat({
+                    "members": selectedIds
+                })
+                console.log(res)
+                getConversation(),
+                    setSelectedIds([]),
+                    setModalVisible(!isModalVisible),
+                    showToast("success", "Thành công")
+                resetFriendSelection();
 
-            const res = await createNewGroupChat({
-                "members": selectedIds
-            })
-            getConversation(),
-                setSelectedIds([]),
-                setModalVisible(!isModalVisible),
-                showToast("success", "Thành công")
-            resetFriendSelection();
-
-        } catch (error) {
-            alert(error)
+            } catch (error) {
+                alert(error)
+            }
         }
     }
 
 
     const handleSearch = (textSearch: string) => {
         const result = conversation.filter((item) => {
-            const memberNames = item?.members.map((member) => member.username);
+            const memberNames = item?.members.map((member: { username: any; }) => member.username);
             const groupNames = item?.groupName
             const combinedNames = memberNames.join(' ').toLowerCase() + (groupNames ? ` ${groupNames.toLowerCase()}` : '');
             return combinedNames.includes(textSearch.toLowerCase());
@@ -145,7 +144,8 @@ const ChatScreen = ({ navigation, route }: any) => {
         }
         setIsLoadingFriend(false);
     };
-    const isSeen = async (conversationId) => {
+
+    const isSeen = async (conversationId: string) => {
         try {
             const res = await updateWatched(conversationId)
         } catch (error) {
@@ -155,131 +155,129 @@ const ChatScreen = ({ navigation, route }: any) => {
 
 
     const renderConversationItem = ({ item }: any) => {
-        const members = item.members.filter(member => member._id != userData._id);
+        const members = item.members.filter((member: { _id: any; }) => member._id != userData._id);
         const numMembers = members.length
-        const memberAvatar = members.map(member => member.profilePicture)
+        const memberAvatar = members.map((member: { profilePicture: any; }) => member.profilePicture)
         const isGroup = item?.group
-        const isWatched = item?.watched.filter(item => item == userData._id) == userData._id
+        const isWatched = item?.watched.filter((item: any) => item == userData._id) == userData._id
         return (
             <TouchableOpacity
                 style={styles.conversation}
                 onPress={() => {
+                    isSeen(item?._id);
                     navigation.navigate('MessageScreen', {
                         userData: userData,
                         conversationId: item?._id,
                         members: members,
                         isGroup: isGroup,
-                        memberAvatar: memberAvatar.map(image => image),
+                        memberAvatar: memberAvatar.map((image: any) => image),
                         groupName: item?.groupName,
                         groupAvatar: item?.groupAvatar
                     })
-                    isSeen(item?._id);
-                }}>
-                <View>
-                    {item?.groupAvatar && (
+                }}
+            >
+
+                {/* Avatar */}
+                {item?.groupAvatar &&
+                    (
                         <View style={styles.conversationImage}>
-                            <View style={{
-                                flex: 1,
-                                padding: 1,
-                            }}>
-                                <Image
-                                    source={{ uri: item?.groupAvatar }}
-                                    style={{
-                                        width: "100%", height: "100%", borderRadius: 30
-                                    }}
-                                />
-                            </View>
+                            <Image
+                                source={{ uri: item?.groupAvatar }}
+                                style={{
+                                    width: "100%", height: "100%", borderRadius: 30
+                                }}
+                            />
                         </View>
                     )
-                        ||
-                        (
-                            (numMembers > 1)
-                                ? (
-                                    <View style={styles.conversationImage}>
-                                        <View style={{
-                                            flex: 1,
-                                            padding: 1,
-                                        }}>
-                                            <Image
-                                                source={userData.profilePicture ? { uri: userData.profilePicture } : blankAvatar}
-                                                style={{
-                                                    right: 0, top: 20,
-                                                    width: 40, height: 40,
-                                                    resizeMode: "cover",
-                                                    borderRadius: 30,
-                                                    borderColor: "#f3f4fb",
-                                                    borderWidth: 2
-                                                }}
-                                            />
-                                        </View>
-
-
-                                        <View style={{
-                                            flex: 1,
-                                            padding: 1,
-                                        }}>
-                                            <Image
-                                                source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
-                                                style={{
-                                                    right: 10, bottom: 0,
-                                                    width: 40, height: 40,
-                                                    resizeMode: "cover",
-                                                    borderRadius: 30,
-                                                    borderColor: "#f3f4fb",
-                                                    borderWidth: 2
-                                                }}
-                                            />
-                                        </View>
+                    ||
+                    (
+                        (numMembers > 1)
+                            ? (
+                                <View style={styles.conversationImage}>
+                                    <View style={{
+                                        flex: 1,
+                                        padding: 1,
+                                    }}>
+                                        <Image
+                                            source={userData.profilePicture ? { uri: userData.profilePicture } : blankAvatar}
+                                            style={{
+                                                right: 0, top: 20,
+                                                width: 40, height: 40,
+                                                resizeMode: "cover",
+                                                borderRadius: 30,
+                                                borderColor: "#f3f4fb",
+                                                borderWidth: 2
+                                            }}
+                                        />
                                     </View>
-                                ) : (
-                                    <View style={styles.conversationImage}>
-                                        <View style={{
-                                            flex: 1,
-                                            padding: 1,
-                                        }}>
-                                            <Image
-                                                source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
-                                                style={{
-                                                    width: "100%", height: "100%", borderRadius: 30
-                                                }}
-                                            />
-                                        </View>
-                                    </View>
-                                )
-                        )
-                    }
-                </View>
 
-                <View style={{
-                    width: "100%",
-                    flexDirection: "column",
-                    justifyContent: "center"
-                }}>
-                    <View>
+
+                                    <View style={{
+                                        flex: 1,
+                                        padding: 1,
+                                    }}>
+                                        <Image
+                                            source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
+                                            style={{
+                                                right: 10, bottom: 0,
+                                                width: 40, height: 40,
+                                                resizeMode: "cover",
+                                                borderRadius: 30,
+                                                borderColor: "#f3f4fb",
+                                                borderWidth: 2
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            ) : (
+                                <View style={styles.conversationImage}>
+                                    <View style={{
+                                        flex: 1,
+                                        padding: 1,
+                                    }}>
+                                        <Image
+                                            source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
+                                            style={{
+                                                width: "100%", height: "100%", borderRadius: 30
+                                            }}
+                                        />
+                                    </View>
+                                </View>
+                            )
+                    )
+                }
+
+                {/* Body */}
+                <View style={{ flexDirection: "column", justifyContent: "center", gap: 5, flex: 1 }}>
+                    {/* Tên kênh */}
+                    <View style={{}}>
                         {item?.groupName
                             ? (
-                                <Text style={{ fontSize: 20, fontWeight: isWatched ? "normal" : "bold" }}>
+                                <Text numberOfLines={1} style={{ fontSize: 18, fontWeight: isWatched ? "500" : "bold" }}>
                                     {item?.groupName}
                                 </Text>
                             ) : (
-                                <Text style={{ fontSize: 20, fontWeight: isWatched ? "normal" : "bold" }}>
-                                    {members.map(member => member.username).join(', ')}
+                                <Text numberOfLines={1} style={{ fontSize: 18, fontWeight: isWatched ? "500" : "bold" }}>
+                                    {members.map((member: { username: any; }) => member.username).join(', ')}
                                 </Text>
                             )
                         }
                     </View>
-                    <View style={{ flexDirection: "row", gap: 10, alignSelf: "flex-start" }}>
-                        <View style={{ maxWidth: "65%" }}>
-                            {item?.lastestMessage.image ? (
+                    {/* Thông tin */}
+                    <View style={{ flexDirection: "row", gap: 5, alignSelf: "flex-start", width: "100%" }}>
+                        {/* Tin nhắn cuối */}
+                        <View style={{ maxWidth: "80%" }}>
+                            {item?.lastestMessage?.image ? (
                                 <Text
+                                    numberOfLines={1}
                                     style={{
                                         fontSize: 15,
                                         color: isWatched ? "gray" : "black",
                                         fontWeight: isWatched ? "normal" : "bold",
                                     }}>
-                                    {item?.lastestMessage.sender._id === userData._id
+                                    {(item.lastestMessage?.sender?._id === userData._id) && item?.lastestMessage
                                         ? "Bạn đã gửi một ảnh."
-                                        : `${item?.lastestMessage.sender.username} đã gửi một ảnh.`}
+                                        : `${item?.lastestMessage?.sender?.username} đã gửi một ảnh.`}
                                 </Text>
                             ) : (
                                 <Text numberOfLines={1}
@@ -290,142 +288,42 @@ const ChatScreen = ({ navigation, route }: any) => {
                                         fontWeight: isWatched ? "normal" : "bold",
 
                                     }}>
-                                    {item?.lastestMessage.sender._id === userData._id
+                                    {item?.lastestMessage.sender?._id === userData._id
                                         ? isGroup
-                                            ? `Bạn: ${item?.lastestMessage.text}`
-                                            : item?.lastestMessage.text
+                                            ? `Bạn: ${item?.lastestMessage?.text}`
+                                            : item?.lastestMessage?.text
                                         : isGroup
-                                            ? `${item?.lastestMessage.sender.username}: ${item?.lastestMessage.text}`
-                                            : item?.lastestMessage.text}
+                                            ? `${item?.lastestMessage?.sender?.username}: ${item?.lastestMessage?.text}`
+                                            : item?.lastestMessage?.text}
                                 </Text>
                             )}
+                            <View style={{ height: 2, width: 2, backgroundColor: "gray", position: "absolute", right: -4, top: 10, borderRadius: 10 }}></View>
                         </View>
+                        {/* Thời gian */}
                         <Text style={{ fontSize: 13, color: "gray" }}>
-                            {formatTimeLatestMsg(item?.lastestMessage.createdAt)}
+                            {formatTimeLatestMsg(item?.lastestMessage?.createdAt)}
                         </Text>
                     </View>
 
                 </View>
+                {!isWatched ?
+                    <View style={{ height: 13, width: 13, backgroundColor: "#FF9134", borderRadius: 20, marginRight: 10 }}>
+                    </View> : null}
             </TouchableOpacity>
         );
     }
 
-    const renderFriendItem = ({ item }: any) => {
-        return (
-            <TouchableOpacity
-                onPress={() => {
-                    const updatedFriends = [...friends];
-                    item.isSelected = !item.isSelected;
-                    setFriends(updatedFriends);
-                    if (item.isSelected && item?._id) {
-                        setSelectedIds((prevSelectedIds) => {
-                            const updatedIds = [...prevSelectedIds];
-                            if (!updatedIds.includes(userData?._id)) {
-                                updatedIds.push(userData?._id);
-                            }
-                            updatedIds.push(item?._id);
-                            return updatedIds;
-                        });
-                    } else {
-                        setSelectedIds((prevSelectedIds) =>
-                            prevSelectedIds.filter((id) => id !== item._id)
-                        );
-                    }
-                }}
-                style={{
-                    width: "100%",
-                    flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 22,
-                }}
-            >
-                <View
-                    style={{
-                        flexDirection: "row",
-                        width: "100%",
-                        paddingVertical: 10,
-                        alignItems: "center",
-                        gap: 15
-                    }}
-                >
-                    <Image
-                        source={item?.profilePicture ? { uri: item?.profilePicture } : blankAvatar}
-                        resizeMode="contain"
-                        style={{
-                            height: 50,
-                            width: 50,
-                            borderRadius: 25,
-                        }}
-                    />
-
-                    <Text style={{ color: 'black', fontSize: 15, fontWeight: "bold" }}>
-                        {item?.username}
-                    </Text>
-                    <Checkbox
-                        color="#888"
-                        onValueChange={() => {
-                            item.isSelected = !item.isSelected;
-                            const updatedFriends = [...friends];
-                            setFriends(updatedFriends);
-
-                            if (item.isSelected) {
-                                setSelectedIds((prevSelectedIds) => {
-                                    const updatedIds = [...prevSelectedIds];
-                                    if (!updatedIds.includes(userData?._id)) {
-                                        updatedIds.push(userData?._id);
-                                    }
-                                    updatedIds.push(item?._id);
-                                    return updatedIds;
-                                });
-                            } else {
-                                setSelectedIds((prevSelectedIds) =>
-                                    prevSelectedIds.filter((id) => id !== item._id)
-                                );
-                            }
-                        }}
-                        value={item.isSelected}
-                        style={{
-                            position: "absolute",
-                            right: 10,
-                        }}
-                    />
-                </View>
-            </TouchableOpacity>
-        );
-    };
 
     return (
-        <SafeAreaView style={styles.container}>
-            <Header>
-                <Text style={{ fontSize: 20, fontWeight: "bold" }} >Đoạn chat </Text>
-                <View style={styles.header}>
-                    <View style={{ width: "80%", flexDirection: "row", justifyContent: "center", alignItems: "center" }}>
-                        <TextInput
-                            value={textSearch}
-                            placeholder="Tìm kiếm"
-                            style={styles.searchInput}
-                            onChangeText={(value) => {
-                                setTextSearch(value);
-                            }}
-                        />
-                        {textSearch && (
-                            <MaterialIcons name="cancel" size={25} color={"gray"}
-                                onPress={() => setTextSearch("")}
-                                style={{ position: "absolute", right: 10 }}
-                            />
-                        )}
-                    </View>
-                    <TouchableOpacity
-                        style={{ width: 30, height: 30 }}
-                        onPress={() => setModalVisible(!isModalVisible)}
-                    >
-                        <Entypo name="new-message" size={25} color="#FF9134" />
-                    </TouchableOpacity>
-                </View>
-            </Header>
+        <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
+            <StatusBar barStyle={'dark-content'} backgroundColor={"#FFFFFF"} />
+            {/* Header */}
+            <View style={{ width: "100%", height: "11%" }}>
+                <Header setModalVisible={setModalVisible} isModalVisible={isModalVisible} />
+            </View>
 
-            <View style={styles.body}>
-
+            {/* List Conversations */}
+            <View style={{ flex: 1, }}>
                 <FlatList
                     onRefresh={getConversation}
                     refreshing={isLoadingConversation}
@@ -437,114 +335,64 @@ const ChatScreen = ({ navigation, route }: any) => {
                             <Text numberOfLines={2} style={{ position: "absolute", top: 130, fontSize: 25, textAlign: "center", width: "50%" }}>Chưa có cuộc trò chuyện nào!</Text>
                         </View>
                     )}
-                />
-            </View>
-            <Modal
-                animationType="slide"
-                transparent={true}
-                statusBarTranslucent={true}
-                visible={isModalVisible}
-                onRequestClose={() => setModalVisible(!isModalVisible)}
-            >
-                <View style={styles.newChatModal}>
-                    <View style={styles.modal}>
-                        <TouchableOpacity
-                            style={{
-                                position: "absolute",
-                                left: 10,
-                                top: 0,
-                                padding: 10,
-                            }}
-                            onPress={() => {
-                                setSelectedIds([]);
-                                setFriendSearch("");
-                                setModalVisible(!isModalVisible);
-                                resetFriendSelection();
-                            }}
-                        >
-                            <Text style={{ color: "#FF9134", fontSize: 20 }}>Hủy</Text>
-                        </TouchableOpacity>
-                        {(numSelected > 1)
-                            ?
-                            <TouchableOpacity
-                                style={{
-                                    position: "absolute",
-                                    right: 10,
-                                    top: 0,
-                                    padding: 10,
-                                }}
-                                onPress={newGroupChat}
-                            >
-                                <Text style={{ color: "#FF9134", fontSize: 20, fontWeight: "bold" }}>Tạo</Text>
-                            </TouchableOpacity>
-                            :
-                            <TouchableOpacity
-                                style={{
-                                    position: "absolute",
-                                    right: 10,
-                                    top: 0,
-                                    padding: 10,
-                                }}
-                                onPress={newGroupChat}
-                            >
-                                <Text style={{ color: "lightgray", fontSize: 20 }}>Tạo</Text>
-                            </TouchableOpacity>
-                        }
-                        <View style={{
-                            top: 50,
-                            width: "100%",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            backgroundColor: "#f3f4fa",
-                        }}>
-                            <Text style={{ fontSize: 17, color: "gray", padding: 10 }}>Đến:</Text>
-                            <TextInput
-                                multiline={true}
-                                value={friendSearch}
-                                style={{
-                                    width: "70%",
-                                    fontSize: 17,
-                                    maxHeight: 100,
-                                }}
-                                onChangeText={(value) => {
-                                    setFriendSearch(value);
-                                }}
-                            />
-                            {friendSearch && (
-                                <MaterialIcons name="cancel" size={25}
-                                    onPress={() => setFriendSearch("")}
-                                    style={{
-                                        position: "absolute",
-                                        right: 10,
+                    ListHeaderComponent={() => (
+                        <View style={{ alignItems: "center", marginTop: 10 }}>
+                            {/* Search */}
+                            <View style={{
+                                width: "90%", height: 40, flexDirection: "row", borderRadius: 10,
+                                justifyContent: "center", alignItems: "center", backgroundColor: "#F3F4FD"
+                            }}>
+                                <EvilIcons name="search" size={26} color="#888" />
+                                <TextInput
+                                    value={textSearch}
+                                    placeholder="Tìm kiếm"
+                                    placeholderTextColor={"#888"}
+                                    style={{ flex: 1, height: "100%", fontSize: 18 }}
+                                    onChangeText={(value) => {
+                                        setTextSearch(value);
                                     }}
                                 />
-                            )}
-                        </View>
-                        <View
-                            style={{
-                                width: "100%",
-                                marginHorizontal: 5,
-                                top: 50,
-                            }}>
-                            <FlatList
-                                onRefresh={getAllFriend}
-                                refreshing={isLoadingFriend}
-                                data={friendSearch ? dataFriendSearch : friends}
-                                renderItem={renderFriendItem}
-                                ListEmptyComponent={() => (
-                                    <View style={{ alignItems: "center", justifyContent: "center", marginTop: 180 }}>
-                                        <Image style={{ width: 70, height: 70, marginBottom: 20 }} source={require("../../assets/img/add-group.png")} />
-                                        <Text style={{ fontSize: 20 }}>Bạn chưa có bạn bè nào.</Text>
-                                    </View>
+                                {textSearch && (
+                                    <MaterialIcons name="cancel" size={25} color={"gray"}
+                                        onPress={() => setTextSearch("")}
+                                        style={{ position: "absolute", right: 10 }}
+                                    />
                                 )}
-                            />
+                            </View>
+                            {/* Online users */}
+                            <View style={{ width: "100%" }}>
+                                <OnlineUser friends={friends}
+                                    onlineUsers={onlineUsers}
+                                    userData={userData}
+                                    navigation={navigation}
+                                    isSeen={isSeen}
+                                />
+                            </View>
                         </View>
-                    </View>
-                </View>
-            </Modal>
-            <StatusBar backgroundColor='white' barStyle={'dark-content'} />
+                    )}
+                />
+            </View>
+
+            {/* New Group Chat */}
+            <ModalNewGroupChat
+                isModalVisible={isModalVisible}
+                setModalVisible={setModalVisible}
+                getConversation={getConversation}
+                getAllFriend={getAllFriend}
+                userData={userData}
+                resetFriendSelection={resetFriendSelection}
+                newGroupChat={newGroupChat}
+                setSelectedIds={setSelectedIds}
+                friends={friends}
+                setFriends={setFriends}
+                setFriendSearch={setFriendSearch}
+                numSelected={numSelected}
+                friendSearch={friendSearch}
+                dataFriendSearch={dataFriendSearch}
+                isLoadingFriend={isLoadingFriend}
+            />
             <Toast />
-        </SafeAreaView>
+        </View>
     );
 }
 
@@ -566,9 +414,8 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         borderRadius: 50,
-        marginRight: 10,
-        marginLeft: 10,
         flexDirection: 'row',
+        marginHorizontal: 5
     },
     container: {
         height: windowHeight,
@@ -598,24 +445,15 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         height: 70,
-        margin: 5,
-        marginHorizontal: 10,
         width: windowWidth,
-        marginBottom: 0
+        marginBottom: 0,
+        padding: 10,
+        marginVertical: 5,
+        gap: 10
+    },
 
-    },
-    newChatModal: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-        alignItems: 'center',
-    },
     modal: {
-        borderRadius: 20,
-        alignItems: 'center',
-        backgroundColor: "white",
-        width: '100%',
-        height: "100%",
-        top: 50
+
 
     },
 })
