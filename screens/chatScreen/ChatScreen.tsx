@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, Modal, StatusBar, ScrollView } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, Modal, StatusBar, ScrollView, Platform } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react'
 import { Entypo, EvilIcons } from '@expo/vector-icons';
@@ -84,14 +84,35 @@ const ChatScreen = ({ navigation, route }: any) => {
         try {
             const listData = await getAllConversationApi();
             const { data } = listData;
-            const sortedLatestMessage = data.sort((a: { lastestMessage: { createdAt: string | number | Date; }; }, b: { lastestMessage: { createdAt: string | number | Date; }; }) => {
-                const dateA = new Date(a.lastestMessage.createdAt);
-                const dateB = new Date(b.lastestMessage.createdAt);
+            // const sortMsg = data.sort((
+            //     a: { createdAt: string | number | Date; },
+            //     b: { createdAt: string | number | Date; }
+            // ) => {
+            //     const dateA = new Date(a?.createdAt);
+            //     const dateB = new Date(b?.createdAt);
+            //     return dateB - dateA;
+            // });
+            // console.log(sortMsg)
+            // console.log(sortedLatestMessage)
+
+            // const sortedLatestMessage = data.sort((
+            //     a: { lastestMessage: { createdAt: string | number | Date; }; },
+            //     b: { lastestMessage: { createdAt: string | number | Date; }; }
+            // ) => {
+            //     const dateA = new Date(a?.lastestMessage?.createdAt);
+            //     const dateB = new Date(b?.lastestMessage?.createdAt);
+            //     return dateB - dateA;
+            // });
+            // console.log(sortedLatestMessage)
+            data.sort((a, b) => {
+                const dateA = a.lastestMessage ? new Date(a.lastestMessage.createdAt) : new Date(a.createdAt);
+                const dateB = b.lastestMessage ? new Date(b.lastestMessage.createdAt) : new Date(b.createdAt);
+
                 return dateB - dateA;
             });
-            setConversation(sortedLatestMessage);
+            setConversation(data);
         } catch (error: any) {
-            alert(error.response);
+            showToast("error", "Không thể tải cuộc trò chuyện")
         }
         setIsLoadingConversation(false);
         getAllFriend();
@@ -288,7 +309,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                                         fontWeight: isWatched ? "normal" : "bold",
 
                                     }}>
-                                    {item?.lastestMessage.sender?._id === userData._id
+                                    {item?.lastestMessage?.sender?._id === userData._id
                                         ? isGroup
                                             ? `Bạn: ${item?.lastestMessage?.text}`
                                             : item?.lastestMessage?.text
@@ -369,6 +390,9 @@ const ChatScreen = ({ navigation, route }: any) => {
                                 />
                             </View>
                         </View>
+                    )}
+                    ListFooterComponent={() => (
+                        <View style={{ height: Platform.OS === 'android' ? 30 : null }}></View>
                     )}
                 />
             </View>
