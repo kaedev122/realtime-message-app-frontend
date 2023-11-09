@@ -16,7 +16,7 @@ const UserProfileScreen = ({ navigation, route }: any) => {
         const result = await logoutApi();
         console.log(result)
         removeTokenFromAxios()
-        navigation.navigate("LoginScreen")
+        navigation.navigate("AuthScreen")
         console.log(accessToken)
         socket.emit('forceDisconnect')
       }
