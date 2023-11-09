@@ -1,20 +1,17 @@
-import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, Modal, StatusBar, ScrollView, Platform } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, StatusBar, Platform } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useState, useEffect, useCallback, useLayoutEffect } from 'react'
-import { Entypo, EvilIcons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-navigation';
-import { MaterialIcons, Ionicons, AntDesign } from '@expo/vector-icons';
+import React, { useState, useEffect, useCallback } from 'react'
+import { EvilIcons, MaterialIcons } from '@expo/vector-icons';
 import { createNewGroupChat, createNewChat, getAllConversationApi, updateWatched } from '../../services/ChatService'
-import { getUserDataByIdApi } from '../../services/UserService'
 import { getAllFriendApi } from '../../services/FriendService';
 import Checkbox from 'expo-checkbox';
 import { showToast } from '../../component/showToast';
 import Toast from 'react-native-toast-message';
 import { blankAvatar } from '../friendScreen/FriendScreen';
 import Header from '../../component/conversations/Header';
-import { formatDay, formatTimeLatestMsg } from '../../component/formatTime';
+import { formatTimeLatestMsg } from '../../component/formatTime';
 import { socket } from "../../utils/socket";
-import { useUnreadMessages, UnreadMessagesProvider } from '../../component/UnreadMessages ';
+import { useUnreadMessages } from '../../component/UnreadMessages ';
 import OnlineUser from '../../component/conversations/OnlineUser';
 import ModalNewGroupChat from '../../component/conversations/ModalNewGroupChat';
 const windowWidth = Dimensions.get('window').width;
@@ -27,6 +24,7 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const numSelected = selectedIds.filter(index => index != userData._id).length
     const [conversation, setConversation] = useState([]);
+    // console.log(conversation)
     const [textSearch, setTextSearch] = useState<string>("");
     const [dataSearch, setDataSearch] = useState([]);
     //
@@ -36,13 +34,49 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [isModalVisible, setModalVisible] = useState(false);
     const [onlineUsers, setOnlineUsers] = useState([])
     const { setUnreadMessages } = useUnreadMessages()
-    const isWatched = conversation.filter(
-        conversation => conversation.watched.includes(userData._id)
-    );
+
+    const seen = conversation.map(conversation => conversation.watched)
+    const duplicateIDs = seen.flatMap(subArray => {
+        const ids = subArray.map(item => item._id);
+        const duplicate = ids.filter(id => id === userData._id);
+        return duplicate;
+    });
+
+    // console.log(duplicateIDs);
+    const isWatched = conversation
+        .map(conversation => conversation.watched)
+        .filter(info => info.some(obj => obj?._id === userData._id))
     const countNotWatched = conversation.length - isWatched.length;
     useEffect(() => {
         setUnreadMessages(countNotWatched);
     }, [countNotWatched]);
+
+    useEffect(() => {
+        socket?.on("getIncomeConversation", (data) => {
+            // console.log("!!!", data?.watched)
+            setConversation((prevState) => {
+                const newState = prevState.map(item => {
+                    if (item._id === data._id) {
+                        item.lastestMessage = data.lastestMessage;
+                    }
+                    return item;
+                });
+                const updatedWatched = data.watched || [];
+                newState.forEach(item => {
+                    const foundWatched = updatedWatched.find(watchedItem => watchedItem._id === item._id);
+                    item.watched = foundWatched || item.watched;
+                });
+
+                newState.sort((a, b) => {
+                    const dateA = new Date(a.lastestMessage.createdAt);
+                    const dateB = new Date(b.lastestMessage.createdAt);
+                    return dateB - dateA;
+                });
+
+                return newState;
+            });
+        });
+    }, [socket]);
 
     useEffect(() => {
         getConversation();
@@ -84,26 +118,6 @@ const ChatScreen = ({ navigation, route }: any) => {
         try {
             const listData = await getAllConversationApi();
             const { data } = listData;
-            // const sortMsg = data.sort((
-            //     a: { createdAt: string | number | Date; },
-            //     b: { createdAt: string | number | Date; }
-            // ) => {
-            //     const dateA = new Date(a?.createdAt);
-            //     const dateB = new Date(b?.createdAt);
-            //     return dateB - dateA;
-            // });
-            // console.log(sortMsg)
-            // console.log(sortedLatestMessage)
-
-            // const sortedLatestMessage = data.sort((
-            //     a: { lastestMessage: { createdAt: string | number | Date; }; },
-            //     b: { lastestMessage: { createdAt: string | number | Date; }; }
-            // ) => {
-            //     const dateA = new Date(a?.lastestMessage?.createdAt);
-            //     const dateB = new Date(b?.lastestMessage?.createdAt);
-            //     return dateB - dateA;
-            // });
-            // console.log(sortedLatestMessage)
             data.sort((a, b) => {
                 const dateA = a.lastestMessage ? new Date(a.lastestMessage.createdAt) : new Date(a.createdAt);
                 const dateB = b.lastestMessage ? new Date(b.lastestMessage.createdAt) : new Date(b.createdAt);
@@ -124,7 +138,6 @@ const ChatScreen = ({ navigation, route }: any) => {
                 const res = await createNewGroupChat({
                     "members": selectedIds
                 })
-                console.log(res)
                 getConversation(),
                     setSelectedIds([]),
                     setModalVisible(!isModalVisible),
@@ -132,7 +145,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                 resetFriendSelection();
 
             } catch (error) {
-                alert(error)
+                // console.log(error)
             }
         }
     }
@@ -155,15 +168,15 @@ const ChatScreen = ({ navigation, route }: any) => {
     };
 
     const getAllFriend = async () => {
-        setIsLoadingFriend(true);
+        setIsLoadingConversation(true);
         try {
             const listFriend = await getAllFriendApi();
             const { data } = listFriend;
             setFriends(data.friendList);
         } catch (error: any) {
-            alert(error.response);
+            // console.log(error)
         }
-        setIsLoadingFriend(false);
+        setIsLoadingConversation(false);
     };
 
     const isSeen = async (conversationId: string) => {
@@ -174,17 +187,29 @@ const ChatScreen = ({ navigation, route }: any) => {
         }
     }
 
+    // Online
+
 
     const renderConversationItem = ({ item }: any) => {
-        const members = item.members.filter((member: { _id: any; }) => member._id != userData._id);
+        const members = item?.members?.filter((member: { _id: any; }) => member?._id != userData._id);
         const numMembers = members.length
-        const memberAvatar = members.map((member: { profilePicture: any; }) => member.profilePicture)
+        const memberNames = members.map((member: { username: any; }) => member?.username)
+        const memberAvatar = members.map((member: { profilePicture: any; }) => member?.profilePicture)
         const isGroup = item?.group
-        const isWatched = item?.watched.filter((item: any) => item == userData._id) == userData._id
+        const memberSeenInfo = item?.watched.filter((info: any) => info?._id)
+        const memberSeenAvatar = memberSeenInfo.map((user: { profilePicture: any; }) => user?.profilePicture)
+        const isWatched = memberSeenInfo.map((info => info._id)).includes(userData._id)
         return (
             <TouchableOpacity
                 style={styles.conversation}
                 onPress={() => {
+
+                    // console.log("members", members)
+                    // console.log("user:", userData)
+                    // console.log("gr:", isGroup)
+                    // console.log("Avt:", memberAvatar.map((image: any) => image))
+                    // console.log("grN:", item?.groupName)
+                    // console.log("grA:", item?.groupAvatar)
                     isSeen(item?._id);
                     navigation.navigate('MessageScreen', {
                         userData: userData,
@@ -195,6 +220,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                         groupName: item?.groupName,
                         groupAvatar: item?.groupAvatar
                     })
+                    console.log(item)
                 }}
             >
 
@@ -279,7 +305,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                                 </Text>
                             ) : (
                                 <Text numberOfLines={1} style={{ fontSize: 18, fontWeight: isWatched ? "500" : "bold" }}>
-                                    {members.map((member: { username: any; }) => member.username).join(', ')}
+                                    {memberNames.join(', ')}
                                 </Text>
                             )
                         }
@@ -314,7 +340,9 @@ const ChatScreen = ({ navigation, route }: any) => {
                                             ? `Bạn: ${item?.lastestMessage?.text}`
                                             : item?.lastestMessage?.text
                                         : isGroup
-                                            ? `${item?.lastestMessage?.sender?.username}: ${item?.lastestMessage?.text}`
+                                            ? item?.lastestMessage
+                                                ? `${item?.lastestMessage?.sender?.username}: ${item?.lastestMessage?.text}`
+                                                : ''
                                             : item?.lastestMessage?.text}
                                 </Text>
                             )}
@@ -382,7 +410,8 @@ const ChatScreen = ({ navigation, route }: any) => {
                             </View>
                             {/* Online users */}
                             <View style={{ width: "100%" }}>
-                                <OnlineUser friends={friends}
+                                <OnlineUser
+                                    friends={friends}
                                     onlineUsers={onlineUsers}
                                     userData={userData}
                                     navigation={navigation}

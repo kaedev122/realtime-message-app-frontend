@@ -4,48 +4,53 @@ import { blankAvatar } from '../../screens/friendScreen/FriendScreen'
 import { getConversationOf2UserAPI } from '../../services/ChatService';
 
 const OnlineUser = ({ friends, onlineUsers, userData, navigation, isSeen }: any) => {
-    const onlineFriends = friends.filter(friend => onlineUsers.includes(friend._id));
+    const onlineFriends = friends?.filter(friend => onlineUsers.includes(friend._id));
     const [conversationID, setConversationId] = useState()
     const [members, setMembers] = useState([])
     const [isGroup, setGroup] = useState<boolean>()
-
+    // console.log(conversationID)
+    // console.log(isGroup)
     useEffect(() => {
-        if (friends.length > 0) {
+        if (friends?.length > 0) {
             const initialFriendId = friends[0]?._id
-            getConversationOf2User(userData._id, initialFriendId);
+            getConversationOf2User(userData?._id, initialFriendId);
         }
     }, []);
     const getConversationOf2User = async (friendId: string) => {
         try {
             const res = await getConversationOf2UserAPI(userData._id, friendId);
             const { data } = res
-            setConversationId(data._id)
-            setMembers(data.members)
-            setGroup(data.group)
+            setConversationId(data[0]?._id)
+            setGroup(data[0]?.group)
+            // setMembers(data[0]?.members)
         } catch (error: any) {
             alert(error.response);
         }
     }
     const renderOnlineUserItem = ({ item }: any) => {
 
-        const isOnline = onlineUsers.includes(item?._id);
+        const members = item
+
+        const memberAvatar = members?.profilePicture
+        const isOnline = onlineUsers?.includes(item?._id);
         const avatar = item?.profilePicture
         return (
             <TouchableOpacity style={{ flexDirection: "column", alignItems: "center", gap: 5, margin: 5 }}
                 onPress={() => {
-                    getConversationOf2User(item._id)
-                    console.log("members:", members)
-                    console.log("members:", members)
+                    // getConversationOf2User(item?._id)
+                    console.log("getConversationOf2User")
+                    console.log(conversationID)
+
                     isSeen(conversationID);
-                    // navigation.navigate("MessageScreen", {
-                    //     userData: userData,
-                    //     conversationId: conversationID,
-                    //     members: members,
-                    //     isGroup: isGroup,
-                    //     memberAvatar: memberAvatar.map(image => image),
-                    //     groupName: item?.groupName,
-                    //     groupAvatar: item?.groupAvatar
-                    // })
+                    navigation.navigate("MessageScreen", {
+                        userData: userData,
+                        conversationId: conversationID,
+                        members: [members],
+                        isGroup: isGroup,
+                        memberAvatar: [memberAvatar],
+                        groupName: item?.groupName,
+                        groupAvatar: ''
+                    })
                 }} >
                 <View style={styles.conversationImage}>
                     <Image
@@ -68,7 +73,7 @@ const OnlineUser = ({ friends, onlineUsers, userData, navigation, isSeen }: any)
     return (
         <FlatList
             style={{ margin: 10 }}
-            data={friends}
+            data={onlineFriends}
             showsHorizontalScrollIndicator={false}
             horizontal={true}
             renderItem={(item) => renderOnlineUserItem(item)}

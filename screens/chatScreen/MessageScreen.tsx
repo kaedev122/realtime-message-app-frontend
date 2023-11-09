@@ -40,7 +40,7 @@ const MessageScreen = ({ route, navigation }: any) => {
         groupName,
         groupAvatar
     } = route.params;
-
+    console.log(conversationId)
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [press, setPress] = useState<boolean>(false)
     //
@@ -78,6 +78,7 @@ const MessageScreen = ({ route, navigation }: any) => {
     useEffect(() => {
         scrollToBottom()
         getMessageOfConversation(conversationId);
+
     }, []);
 
     useEffect(() => {
@@ -127,7 +128,7 @@ const MessageScreen = ({ route, navigation }: any) => {
         try {
             const res = await getMessageOfConversationApi(conversationId);
             const { data } = res
-
+            console.log("-------", data)
             setMessage(data);
         } catch (error) {
             alert("Lỗi" + error);
@@ -219,12 +220,8 @@ const MessageScreen = ({ route, navigation }: any) => {
         const senderInfo = members.find(member => member._id === item?.sender?._id);
         const senderName = senderInfo ? senderInfo.username : null;
         const isUserDataSender = item?.sender?._id === userData._id;
-        const isReceiver = item?.sender?.profilePicture != userData.profilePicture
-        const senderNameStyle = [styles.senderName, {
-            alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
-            position: "absolute",
-            left: 30,
-        }];
+        const isReceiver = item?.sender?._id != userData._id
+
 
         let showSenderName = false;
         if (index === 0 || item?.sender?._id !== message[index - 1].sender?._id) {
@@ -238,30 +235,17 @@ const MessageScreen = ({ route, navigation }: any) => {
                             {formatDay(item?.createdAt)}
                         </Text>}
                 </View>
+
                 {showSenderName && isReceiver && (
-                    <View
-                        style={{ marginVertical: 20 }}
-                    >
-                        <Image source={item?.sender?.profilePicture ? { uri: item?.sender?.profilePicture } : blankAvatar}
-                            style={{
-                                width: 30,
-                                height: 30,
-                                borderRadius: 50,
-                                position: "absolute",
-                                top: 30,
-                                left: 5
-                            }}
-                        />
-                        {isGroup &&
-                            <Text style={senderNameStyle}>{senderName}</Text>
-                        }
+                    <View style={{ height: 30, justifyContent: "flex-end" }}>
+                        <Text style={{ fontSize: 14, color: "lightgray", marginLeft: 50, }}>{senderName}</Text>
                     </View>
                 )}
                 <TouchableOpacity
                     onPress={() => {
-                        console.log(item?.image)
                         setSelectedMessage(item);
                         item?.image && setModalImageVisible(!isModalImageVisible);
+                        console.log(item)
                     }}
 
                     style={[
@@ -270,7 +254,7 @@ const MessageScreen = ({ route, navigation }: any) => {
                             padding: item?.image ? 0 : 7,
                             alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
                             backgroundColor: isUserDataSender ? '#FF9134' : '#F5F5F5',
-                            marginLeft: 40,
+                            marginLeft: isUserDataSender ? 0 : 50,
 
                         },
                     ]}
@@ -289,7 +273,7 @@ const MessageScreen = ({ route, navigation }: any) => {
                             )}
                             <Text style={{
                                 color: isUserDataSender ? '#FFFFFF' : '#262626',
-                                fontSize: 18,
+                                fontSize: 17,
                                 padding: 2
                             }}>{item?.text}</Text>
                         </View>
@@ -307,7 +291,7 @@ const MessageScreen = ({ route, navigation }: any) => {
                     <Text
                         style={[{
                             textAlign: isUserDataSender ? "right" : "left",
-                            fontSize: 13,
+                            fontSize: 11,
                             color: (item?.image && !item?.text || isUserDataSender) ? "white" : "gray",
                             paddingHorizontal: 3
                         }, item?.image && !item?.text && {
@@ -324,6 +308,15 @@ const MessageScreen = ({ route, navigation }: any) => {
                         {formatTime(item?.createdAt)}
                     </Text>
                 </TouchableOpacity>
+                {showSenderName && isReceiver && (
+                    <View style={{ height: 30 }}>
+                        <Image source={item?.sender?.profilePicture ? { uri: item?.sender?.profilePicture } : blankAvatar}
+                            style={{
+                                width: 30, height: 30, borderRadius: 50, position: "absolute", bottom: 30, left: 10
+                            }}
+                        />
+                    </View>
+                )}
             </View>
         );
     };
@@ -350,13 +343,11 @@ const MessageScreen = ({ route, navigation }: any) => {
                 />
             </View>
 
-            <KeyboardAwareScrollView
-                resetScrollToCoords={{ x: 0, y: 0 }}
-                contentContainerStyle={{ flex: 1 }}
-                scrollEnabled={true}
-                ref={scrollViewRef}
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                style={{ flex: 1 }}
             >
-                <View style={{ flex: 1, borderWidth: 1 }}>
+                <View style={{ flex: 1 }}>
                     <FlatList
                         ref={scrollViewRef}
                         contentContainerStyle={{ flexGrow: 1 }}
@@ -368,8 +359,8 @@ const MessageScreen = ({ route, navigation }: any) => {
                         refreshing={isLoading}
                         renderItem={item => renderMessageItem(item)}
                         data={message}
-                        ListFooterComponent={() => (<View style={{ height: 50, backgroundColor: "red" }}></View>)}
-                    // inverted
+                        ListFooterComponent={() => (<View style={{ height: 30 }}></View>)}
+                    // inverte
                     />
                 </View>
 
@@ -392,12 +383,12 @@ const MessageScreen = ({ route, navigation }: any) => {
                             style={{ left: 20, top: 10 }} />
                     }
                 </View>
-                <View style={styles.footer}>
-                    {!press &&
+                <SafeAreaView style={styles.footer}>
+                    {/* {!press &&
                         <TouchableOpacity onPress={pickImageForMessage} >
                             <Image source={require('../../assets/img/camera.png')} style={{ width: 25, height: 25 }} />
                         </TouchableOpacity>
-                    }
+                    } */}
 
                     <TextInput
                         value={newMessage}
@@ -409,25 +400,24 @@ const MessageScreen = ({ route, navigation }: any) => {
                         onFocus={() => setPress(true)}
                         onBlur={() => setPress(false)}
                         style={styles.messageInput}
-                        placeholder="Nhập tin nhắn ..."
+                        placeholder="Tin nhắn"
                     />
-                    <TouchableOpacity onPress={pickImageForMessage} >
-                        <Image source={require('../../assets/img/uploadPhoto.png')} style={{ width: 25, height: 25 }} />
-                    </TouchableOpacity>
-                    {(newMessage || image) &&
-                        <TouchableOpacity
-                            onPress={sendMessage}
-                            style={styles.sendBtn}
-                        >
-                            <FontAwesome name="send" size={24} color="#FF9134" />
+
+                    {(newMessage || image) ?
+                        <TouchableOpacity onPress={sendMessage}
+                            style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }}  >
+                            <FontAwesome name="send" size={30} color="#FF9134" />
+                        </TouchableOpacity>
+                        :
+                        <TouchableOpacity onPress={pickImageForMessage}
+                            style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }} >
+                            <Image source={require('../../assets/img/uploadPhoto.png')}
+                                style={{ width: 30, height: 30 }} />
                         </TouchableOpacity>
                     }
 
-                </View>
-                <SafeAreaView style={{ marginTop: 50 }}>
-
                 </SafeAreaView>
-            </KeyboardAwareScrollView>
+            </KeyboardAvoidingView>
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -661,11 +651,6 @@ const styles = StyleSheet.create({
         marginVertical: 2,
         maxWidth: '70%',
     },
-    senderName: {
-        fontSize: 14,
-        color: "gray",
-        marginLeft: 10
-    },
     messageText: {
         fontSize: 16,
     },
@@ -676,13 +661,14 @@ const styles = StyleSheet.create({
     },
     footer: {
         flexDirection: 'row',
-        alignItems: 'flex-start',
+        alignItems: 'center',
         width: "100%",
         maxHeight: 150,
-        minHeight: Platform.OS === 'ios' ? 50 : 60,
+        minHeight: 55,
         gap: 10,
-        marginHorizontal: 0,
-        borderWidth: 1
+        backgroundColor: "#e8e8e8",
+
+
     },
     createdAtText: {
         textAlign: "center",
@@ -694,18 +680,11 @@ const styles = StyleSheet.create({
     },
     messageInput: {
         flex: 1,
-        borderRadius: 20,
-        paddingHorizontal: 10,
-        paddingTop: 7,
         backgroundColor: "#e8e8e8",
         fontSize: 18,
         maxHeight: 150,
-        minHeight: Platform.OS === 'ios' ? 40 : 60,
-
-    },
-    sendBtn: {
-        padding: 10,
-        borderWidth: 1
+        marginHorizontal: 10,
+        minHeight: 50,
     },
     icon: {
         padding: 10,
