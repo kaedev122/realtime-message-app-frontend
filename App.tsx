@@ -141,6 +141,7 @@ const App = () => {
           <Stack.Screen name="Media" component={Media} />
 
           <Stack.Screen name="AuthScreen" component={AuthScreen} />
+          <Stack.Screen name="OnlineUser" component={OnlineUser} />
 
 
           <Stack.Screen name="MessageScreen" component={MessageScreen} />
