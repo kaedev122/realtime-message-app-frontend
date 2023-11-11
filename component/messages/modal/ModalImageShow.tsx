@@ -1,8 +1,8 @@
 import { StyleSheet, View, Image, TouchableOpacity, Modal } from 'react-native'
 import React, { useState } from 'react'
+import { MaterialIcons } from '@expo/vector-icons';
 
-const ModalImageShow = ({ image, imageSize, windowWidth }) => {
-    const [isModalImageVisible, setModalImageVisible] = useState(false);
+const ModalImageShow = ({ image, isModalImageVisible, setModalImageVisible }: any) => {
     return (
         <Modal
             animationType="fade"
@@ -14,13 +14,18 @@ const ModalImageShow = ({ image, imageSize, windowWidth }) => {
             <View style={styles.modalImageBackground}>
                 <TouchableOpacity style={styles.touchable} onPress={() => setModalImageVisible(!isModalImageVisible)}>
                     {/* Phần xung quanh modal để bắt sự kiện bấm ra ngoài */}
+                    <MaterialIcons name="cancel" size={30} color={'#FF9134'}
+                        onPress={() => setModalImageVisible(!isModalImageVisible)}
+                        style={{
+                            position: "absolute", left: 30, top: 100
+                        }}
+                    />
                 </TouchableOpacity>
                 <Image
-                    source={{ uri: image }}
+                    source={{ uri: `${image}` }}
                     style={{
-                        width: imageSize.width * 0.3,
-                        height: imageSize.height * 0.3,
-                        maxWidth: windowWidth * 0.9
+                        width: 400,
+                        height: 400
                     }}
                 />
             </View>
