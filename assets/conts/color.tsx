@@ -10,8 +10,9 @@ const COLORS = {
   violet: "#ee82ee", // Màu tím
   light: "#f3f4fb",
   gray: "#808080",
-  darkblue: "#00008b"
-  
+  darkblue: "#00008b",
+  main_color: "#FF9134"
+
 };
 
 export default COLORS

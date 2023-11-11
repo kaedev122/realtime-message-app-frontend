@@ -1,19 +1,18 @@
-import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, StatusBar, Platform } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, StatusBar, Platform, SafeAreaView } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useCallback } from 'react'
 import { EvilIcons, MaterialIcons } from '@expo/vector-icons';
 import { createNewGroupChat, createNewChat, getAllConversationApi, updateWatched } from '../../services/ChatService'
 import { getAllFriendApi } from '../../services/FriendService';
-import Checkbox from 'expo-checkbox';
 import { showToast } from '../../component/showToast';
 import Toast from 'react-native-toast-message';
 import { blankAvatar } from '../friendScreen/FriendScreen';
 import Header from '../../component/conversations/Header';
 import { formatTimeLatestMsg } from '../../component/formatTime';
 import { socket } from "../../utils/socket";
-import { useUnreadMessages } from '../../component/UnreadMessages ';
-import OnlineUser from '../../component/conversations/OnlineUser';
+import { useUnreadMessages } from '../../contexts/UnreadMessages ';
 import ModalNewGroupChat from '../../component/conversations/ModalNewGroupChat';
+import COLORS from '../../assets/conts/color';
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
@@ -53,7 +52,6 @@ const ChatScreen = ({ navigation, route }: any) => {
 
     useEffect(() => {
         socket?.on("getIncomeConversation", (data) => {
-            // console.log("!!!", data?.watched)
             setConversation((prevState) => {
                 const newState = prevState.map(item => {
                     if (item._id === data._id) {
@@ -193,23 +191,19 @@ const ChatScreen = ({ navigation, route }: any) => {
     const renderConversationItem = ({ item }: any) => {
         const members = item?.members?.filter((member: { _id: any; }) => member?._id != userData._id);
         const numMembers = members.length
+        const memberId = members.map((member: { _id: any; }) => member?._id)
+        const isOnline = memberId.some((memberId) => onlineUsers?.includes(memberId));
         const memberNames = members.map((member: { username: any; }) => member?.username)
         const memberAvatar = members.map((member: { profilePicture: any; }) => member?.profilePicture)
         const isGroup = item?.group
         const memberSeenInfo = item?.watched.filter((info: any) => info?._id)
         const memberSeenAvatar = memberSeenInfo.map((user: { profilePicture: any; }) => user?.profilePicture)
         const isWatched = memberSeenInfo.map((info => info._id)).includes(userData._id)
+        console.log(isOnline)
         return (
             <TouchableOpacity
                 style={styles.conversation}
                 onPress={() => {
-
-                    // console.log("members", members)
-                    // console.log("user:", userData)
-                    // console.log("gr:", isGroup)
-                    // console.log("Avt:", memberAvatar.map((image: any) => image))
-                    // console.log("grN:", item?.groupName)
-                    // console.log("grA:", item?.groupAvatar)
                     isSeen(item?._id);
                     navigation.navigate('MessageScreen', {
                         userData: userData,
@@ -231,9 +225,14 @@ const ChatScreen = ({ navigation, route }: any) => {
                             <Image
                                 source={{ uri: item?.groupAvatar }}
                                 style={{
-                                    width: "100%", height: "100%", borderRadius: 30
+                                    width: "100%", height: "100%", borderRadius: 50
                                 }}
                             />
+                            {isOnline &&
+                                <View style={{
+                                    height: 18, width: 18, backgroundColor: "#54cc0e", borderRadius: 10, borderWidth: 3,
+                                    position: "absolute", bottom: 0, right: 0, borderColor: "#FFFFFF"
+                                }}></View>}
                         </View>
                     )
                     ||
@@ -249,9 +248,9 @@ const ChatScreen = ({ navigation, route }: any) => {
                                             source={userData.profilePicture ? { uri: userData.profilePicture } : blankAvatar}
                                             style={{
                                                 right: 0, top: 20,
-                                                width: 40, height: 40,
+                                                width: 35, height: 35,
                                                 resizeMode: "cover",
-                                                borderRadius: 30,
+                                                borderRadius: 50,
                                                 borderColor: "#f3f4fb",
                                                 borderWidth: 2
                                             }}
@@ -266,29 +265,35 @@ const ChatScreen = ({ navigation, route }: any) => {
                                         <Image
                                             source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
                                             style={{
-                                                right: 10, bottom: 0,
-                                                width: 40, height: 40,
+                                                right: 10, top: 5,
+                                                width: 35, height: 35,
                                                 resizeMode: "cover",
-                                                borderRadius: 30,
+                                                borderRadius: 50,
                                                 borderColor: "#f3f4fb",
                                                 borderWidth: 2
                                             }}
                                         />
                                     </View>
+                                    {isOnline &&
+                                        <View style={{
+                                            height: 18, width: 18, backgroundColor: "#54cc0e", borderRadius: 10, borderWidth: 3,
+                                            position: "absolute", bottom: 0, right: 0, borderColor: "#FFFFFF"
+                                        }}></View>}
                                 </View>
                             ) : (
                                 <View style={styles.conversationImage}>
-                                    <View style={{
-                                        flex: 1,
-                                        padding: 1,
-                                    }}>
-                                        <Image
-                                            source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
-                                            style={{
-                                                width: "100%", height: "100%", borderRadius: 30
-                                            }}
-                                        />
-                                    </View>
+
+                                    <Image
+                                        source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
+                                        style={{
+                                            width: "100%", height: "100%", borderRadius: 50
+                                        }}
+                                    />
+                                    {isOnline &&
+                                        <View style={{
+                                            height: 18, width: 18, backgroundColor: "#54cc0e", borderRadius: 10, borderWidth: 3,
+                                            position: "absolute", bottom: 0, right: 0, borderColor: "#FFFFFF"
+                                        }}></View>}
                                 </View>
                             )
                     )
@@ -346,17 +351,21 @@ const ChatScreen = ({ navigation, route }: any) => {
                                             : item?.lastestMessage?.text}
                                 </Text>
                             )}
-                            <View style={{ height: 2, width: 2, backgroundColor: "gray", position: "absolute", right: -4, top: 10, borderRadius: 10 }}></View>
                         </View>
                         {/* Thời gian */}
-                        <Text style={{ fontSize: 13, color: "gray" }}>
-                            {formatTimeLatestMsg(item?.lastestMessage?.createdAt)}
-                        </Text>
+                        {item?.lastestMessage
+                            ? <View style={{ alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 5 }}>
+                                <View style={{ height: 2, width: 2, backgroundColor: "gray", borderRadius: 10 }}></View>
+                                <Text style={{ fontSize: 13, color: "gray" }}>
+                                    {formatTimeLatestMsg(item?.lastestMessage?.createdAt)}
+                                </Text>
+                            </View>
+                            : null
+                        }
                     </View>
-
                 </View>
                 {!isWatched ?
-                    <View style={{ height: 13, width: 13, backgroundColor: "#FF9134", borderRadius: 20, marginRight: 10 }}>
+                    <View style={{ height: 13, width: 13, backgroundColor: COLORS.main_color, borderRadius: 20, marginRight: 10 }}>
                     </View> : null}
             </TouchableOpacity>
         );
@@ -367,8 +376,12 @@ const ChatScreen = ({ navigation, route }: any) => {
         <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
             <StatusBar barStyle={'dark-content'} backgroundColor={"#FFFFFF"} />
             {/* Header */}
-            <View style={{ width: "100%", height: "11%" }}>
-                <Header setModalVisible={setModalVisible} isModalVisible={isModalVisible} />
+            <View style={{ width: "100%", height: Platform.OS === 'ios' ? "11%" : "8%", backgroundColor: COLORS.main_color }}>
+                <Header
+                    textSearch={textSearch}
+                    setTextSearch={setTextSearch}
+                    setModalVisible={setModalVisible}
+                    isModalVisible={isModalVisible} />
             </View>
 
             {/* List Conversations */}
@@ -387,29 +400,9 @@ const ChatScreen = ({ navigation, route }: any) => {
                     ListHeaderComponent={() => (
                         <View style={{ alignItems: "center", marginTop: 10 }}>
                             {/* Search */}
-                            <View style={{
-                                width: "90%", height: 40, flexDirection: "row", borderRadius: 10,
-                                justifyContent: "center", alignItems: "center", backgroundColor: "#F3F4FD"
-                            }}>
-                                <EvilIcons name="search" size={26} color="#888" />
-                                <TextInput
-                                    value={textSearch}
-                                    placeholder="Tìm kiếm"
-                                    placeholderTextColor={"#888"}
-                                    style={{ flex: 1, height: "100%", fontSize: 18 }}
-                                    onChangeText={(value) => {
-                                        setTextSearch(value);
-                                    }}
-                                />
-                                {textSearch && (
-                                    <MaterialIcons name="cancel" size={25} color={"gray"}
-                                        onPress={() => setTextSearch("")}
-                                        style={{ position: "absolute", right: 10 }}
-                                    />
-                                )}
-                            </View>
+
                             {/* Online users */}
-                            <View style={{ width: "100%" }}>
+                            {/* <View style={{ width: "100%" }}>
                                 <OnlineUser
                                     friends={friends}
                                     onlineUsers={onlineUsers}
@@ -417,7 +410,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                                     navigation={navigation}
                                     isSeen={isSeen}
                                 />
-                            </View>
+                            </View> */}
                         </View>
                     )}
                     ListFooterComponent={() => (
@@ -464,8 +457,8 @@ const styles = StyleSheet.create({
 
     },
     conversationImage: {
-        width: 60,
-        height: 60,
+        width: 55,
+        height: 55,
         borderRadius: 50,
         flexDirection: 'row',
         marginHorizontal: 5

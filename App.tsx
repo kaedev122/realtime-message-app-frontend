@@ -16,8 +16,7 @@ import FriendScreen from "./screens/friendScreen/FriendScreen";
 ///
 import UserProfileScreen from './screens/userScreens/UserProfileScreen';
 import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
-import Media from './component/Media';
-import { UnreadMessagesProvider, useUnreadMessages } from './component/UnreadMessages ';
+import { UnreadMessagesProvider, useUnreadMessages } from './contexts/UnreadMessages ';
 import AuthScreen from './screens/authScreen/AuthScreen';
 import OnlineUser from './component/conversations/OnlineUser';
 
@@ -41,7 +40,7 @@ function TabNavigator({ route }: any) {
           left: 0,
           right: 0,
           height: 80,
-          borderTopColor: "#f3f4fdb3",
+          // borderTopColor: "#f3f4fdb3",
           borderTopWidth: 0
 
         },
@@ -138,7 +137,6 @@ const App = () => {
       <NavigationContainer>
         <Stack.Navigator initialRouteName="AuthScreen" screenOptions={{ headerShown: false, }}>
           <Stack.Screen name="HomeTabs" component={TabNavigator} />
-          <Stack.Screen name="Media" component={Media} />
 
           <Stack.Screen name="AuthScreen" component={AuthScreen} />
           <Stack.Screen name="OnlineUser" component={OnlineUser} />

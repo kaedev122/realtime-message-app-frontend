@@ -2,7 +2,7 @@ import { Image, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableO
 import React from 'react'
 import { MaterialIcons } from '@expo/vector-icons'
 import { blankAvatar } from '../../screens/friendScreen/FriendScreen'
-import { useUnreadMessages } from '../UnreadMessages '
+import { useUnreadMessages } from '../../contexts/UnreadMessages '
 
 const Header = ({
     navigation,
