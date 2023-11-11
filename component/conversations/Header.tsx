@@ -1,24 +1,42 @@
 import { Image, SafeAreaView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React from 'react'
+import { EvilIcons, Feather, MaterialIcons } from '@expo/vector-icons';
+import COLORS from '../../assets/conts/color';
 
-const Header = ({ isModalVisible, setModalVisible }: any) => {
+const Header = ({ isModalVisible, setModalVisible, textSearch, setTextSearch }: any) => {
     return (
-        <View style={{
-            width: "100%", height: "100%", justifyContent: "flex-end", alignItems: "center",
-            opacity: 0.99, shadowOpacity: 0.99, backgroundColor: "#FFFFFF"
+        <SafeAreaView style={{
+            width: "100%", height: "100%", alignItems: "flex-end",
+            backgroundColor: COLORS.main_color, flexDirection: "row",
         }}>
-            <StatusBar barStyle={'dark-content'} backgroundColor={"#FFFFFF"} />
-            <Text style={{ textAlign: "center", fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>
-                Đoạn chat
-            </Text>
+            <StatusBar barStyle={'dark-content'} backgroundColor={COLORS.main_color} />
+            <View style={{
+                paddingLeft: 10, flex: 1, height: 40, gap: 10, flexDirection: "row", justifyContent: "center", alignItems: "center"
+            }}>
+                <EvilIcons name="search" size={26} color="#FFFFFF" />
+                <TextInput
+                    value={textSearch}
+                    placeholder="Tìm kiếm"
+                    placeholderTextColor={"#FFFFFF"}
+                    style={{ flex: 1, height: "100%", fontSize: 18, color: "#FFFFFF" }}
+                    onChangeText={(value) => {
+                        setTextSearch(value);
+                    }}
+                />
+                {textSearch && (
+                    <MaterialIcons name="cancel" size={25} color={"gray"}
+                        onPress={() => setTextSearch("")}
+                        style={{ position: "absolute", right: 10 }}
+                    />
+                )}
+            </View>
             <TouchableOpacity
-                style={{ width: 30, height: 30, position: "absolute", right: 15, bottom: 10 }}
+                style={{ width: 50, height: 40, alignItems: "center", justifyContent: "center" }}
                 onPress={() => setModalVisible(!isModalVisible)}
             >
-                <Image style={{ width: 30, height: 30, }}
-                    source={require("../../assets/img/edit.png")} />
+                <Feather name="edit" size={24} color="#FFFFFF" />
             </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     )
 }
 
