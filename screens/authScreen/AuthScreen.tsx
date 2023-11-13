@@ -7,6 +7,8 @@ import { addTokenToAxios, getAccessToken } from '../../services/TokenService'
 import { initializeSocket, socket } from '../../utils/socket'
 import { getUserDataApi } from '../../services/UserService'
 import Toast from 'react-native-toast-message'
+import { usePushNoti } from '../../utils/usePushNoti';
+
 const DANG_NHAP = "DANG_NHAP"
 const DANG_KY = "DANG_KY"
 
@@ -16,6 +18,7 @@ const windowWidth = Dimensions.get('window').width
 const AuthScreen = ({ navigation }: any) => {
     const [page, setPage] = useState(DANG_NHAP)
     const [start, setStart] = useState<boolean>(false)
+
     // Đăng nhập
     useEffect(() => {
         checkAuthenticated()

@@ -133,9 +133,7 @@ function TabNavigator({ route }: any) {
 }
 
 const App = () => {
-  const { expoPushToken } = usePushNoti()
-  console.log(expoPushToken)
-  
+
   return (
     <UnreadMessagesProvider>
       <NavigationContainer>
