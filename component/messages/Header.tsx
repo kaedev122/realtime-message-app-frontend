@@ -21,7 +21,7 @@ const Header = ({
         <SafeAreaView
             style={{
                 width: "100%", height: "100%", justifyContent: "flex-start",
-                alignItems: "flex-end", flexDirection: "row", gap: 10
+                alignItems: "flex-end", flexDirection: "row", gap: 10, backgroundColor: COLORS.main_color,
             }}
         >
             <StatusBar barStyle={'light-content'} backgroundColor={COLORS.main_color} />

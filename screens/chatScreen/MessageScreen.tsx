@@ -16,7 +16,9 @@ import {
     StatusBar,
     PermissionsAndroid,
     SafeAreaView,
-    ImageBackground
+    ImageBackground,
+    ScrollView,
+    Pressable
 } from 'react-native';
 import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
 import moment from 'moment';
@@ -94,8 +96,17 @@ const MessageScreen = ({ route, navigation }: any) => {
     }
 
     //
-
     const scrollViewRef = useRef(null);
+
+    const scrollToBottom = () => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollToEnd({ animated: true })
+        }
+    }
+    const handleContentSizeChange = () => {
+        scrollToBottom();
+    }
+
     const [status, requestPermission] = ImagePicker.useCameraPermissions();
     useEffect(() => {
         scrollToBottom()
@@ -113,14 +124,7 @@ const MessageScreen = ({ route, navigation }: any) => {
             setMessage([...message, arrivalMessage])
         }
     }, [arrivalMessage])
-    const scrollToBottom = () => {
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollToEnd({ animated: true })
-        }
-    }
-    const handleContentSizeChange = () => {
-        scrollToBottom();
-    }
+
 
 
     let lastDisplayedDate = null;
@@ -149,7 +153,6 @@ const MessageScreen = ({ route, navigation }: any) => {
         try {
             const res = await getMessageOfConversationApi(conversationId);
             const { data } = res
-            console.log("-------", data)
             setMessage(data);
         } catch (error) {
             alert("Lỗi" + error);
@@ -198,6 +201,8 @@ const MessageScreen = ({ route, navigation }: any) => {
                 socket?.emit("sendMessage", socketMessage);
                 setNewMessage('');
                 setImage("")
+
+                getMessageOfConversation(conversationId)
             }
             Keyboard.dismiss
 
@@ -206,133 +211,10 @@ const MessageScreen = ({ route, navigation }: any) => {
         }
     }
 
-    const renderMessageItem = ({ item, index }) => {
-        const shouldDisplayCreatedAt = shouldDisplayDay(index);
-        const senderInfo = members.find(member => member._id === item?.sender?._id);
-        const senderName = senderInfo ? senderInfo.username : null;
-        const isUserDataSender = item?.sender?._id === userData._id;
-        const isReceiver = item?.sender?._id != userData._id
-
-
-        let showSenderName = false
-        let senderNameColor
-        if (index === 0 || item?.sender?._id !== message[index - 1].sender?._id) {
-            showSenderName = true
-            senderNameColor = getRandomColor()
-        }
-        return (
-            <View style={{ flex: 1 }}>
-                {shouldDisplayCreatedAt &&
-                    <View style={{ marginVertical: 40, alignItems: "center", justifyContent: "center", height: 20, width: "20%", marginHorizontal: '40%', borderRadius: 20, backgroundColor: "rgba(250,250,250,0.5)" }}>
-                        <Text style={{
-                            textAlign: "center",
-                            color: "#666666",
-                            fontWeight: '500',
-                            fontSize: 13,
-                        }}>
-                            {formatDay(item?.createdAt)}
-                        </Text>
-                    </View>
-                }
-                {showSenderName && isReceiver && (
-                    <View>
-                        {isGroup
-                            ? <View style={{ height: 30, justifyContent: "flex-end" }}>
-                                <Text style={{ fontSize: 14, color: `${senderNameColor}`, marginLeft: 50 }}>{senderName}</Text>
-                            </View>
-                            : null
-                        }
-                        <View>
-                            <Image source={item?.sender?.profilePicture ? { uri: item?.sender?.profilePicture } : blankAvatar}
-                                style={{
-                                    width: 25, height: 25, borderRadius: 50, position: "absolute", bottom: -35, left: 10
-                                }}
-                            />
-                        </View>
-                    </View>
-                )}
-                <TouchableOpacity
-                    onPress={() => {
-                        setSelectedMessage(item);
-                        item?.image && setModalImageVisible(!isModalImageVisible);
-                        console.log(senderName)
-                    }}
-
-                    style={{
-                        borderRadius: 15,
-                        marginHorizontal: 7,
-                        marginVertical: 2,
-                        maxWidth: '80%',
-                        borderWidth: 1,
-                        padding: item?.image ? 0 : 5,
-                        flexDirection: 'column',
-                        alignItems: "flex-end",
-                        borderColor: "#eeeeee",
-                        alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
-                        backgroundColor: isUserDataSender ? '#d7f7ef' : '#FAFAFA',
-                        marginLeft: isUserDataSender ? 0 : 40,
-
-                    }}
-                >
-                    {item?.text ? (
-                        <View style={{ alignItems: "flex-start" }} >
-                            {item?.image && (
-                                <Image
-                                    source={{ uri: item?.image }}
-                                    style={{
-                                        width: 200,
-                                        height: 200,
-                                        borderRadius: 10
-                                    }}
-                                />
-                            )}
-                            <Text style={{ color: '#212121', fontSize: 17, maxWidth: "100%", paddingHorizontal: item?.image ? 0 : 10, }}>
-                                {item?.text}
-                            </Text>
-                        </View>
-                    ) : (
-                        <Image
-                            source={{ uri: item?.image }}
-                            style={{
-                                width: 200,
-                                height: 200,
-                                borderRadius: 10
-                            }}
-                        />
-                    )}
-                    <View style={item?.image ? {
-                        position: 'absolute',
-                        bottom: 10,
-                        right: 10,
-                        borderRadius: 10,
-                        backgroundColor: "rgba(0, 0, 0, 0.3)",
-                    } : {}}>
-                        <Text
-                            style={{
-                                textAlign: isUserDataSender ? "right" : "left",
-                                fontSize: 10,
-                                color: item?.image ? "#FAFAFA" : "#666666",
-                                paddingHorizontal: 5,
-                                paddingVertical: 1
-                            }}
-                        >
-                            {formatTime(item?.createdAt)}
-                        </Text>
-                    </View>
-                </TouchableOpacity>
-
-
-            </View>
-        );
-    };
-    const handleTopReached = () => {
-        setRenderedMessages(renderedMessages + 50);
-    };
 
     return (
 
         <View style={{ backgroundColor: '#fff', flex: 1 }}>
-            <StatusBar barStyle={'light-content'} backgroundColor={COLORS.main_color} />
             {/* Header */}
             <View style={{ width: "100%", height: Platform.OS === 'ios' ? "10%" : "8%", backgroundColor: COLORS.main_color }}>
                 <Header
@@ -355,75 +237,190 @@ const MessageScreen = ({ route, navigation }: any) => {
                 <ImageBackground
                     source={require("../../assets/img/background-chat.png")}
                     style={{ flex: 1 }}>
-                    <FlatList
-                        ref={scrollViewRef}
+                    <ScrollView
                         contentContainerStyle={{ flexGrow: 1 }}
+                        ref={scrollViewRef}
                         onContentSizeChange={handleContentSizeChange}
-                        initialNumToRender={renderedMessages}
-                        onEndReached={handleTopReached}
-                        onEndReachedThreshold={0.1}
-                        onRefresh={() => getMessageOfConversation(conversationId)}
-                        refreshing={isLoading}
-                        renderItem={item => renderMessageItem(item)}
-                        data={message}
-                        ListFooterComponent={() => (<View style={{ height: 30 }}></View>)}
-                    // inverte
-                    />
-                </ImageBackground>
+                        showsVerticalScrollIndicator={true}
+                    >
+                        {message.map((item, index) => {
+                            const shouldDisplayCreatedAt = shouldDisplayDay(index);
+                            const senderInfo = members.find(member => member._id === item?.sender?._id);
+                            const senderName = senderInfo ? senderInfo.username : null;
+                            const isUserDataSender = item?.sender?._id === userData._id;
+                            const isReceiver = item?.sender?._id != userData._id
 
-                {/* soạn tin nhắn, gửi ảnh */}
-                <View
-                    style={{
-                        justifyContent: "center",
-                        backgroundColor: "#f0f5f4",
-                        flexDirection: "row"
-                    }}
-                >
-                    {image && (
-                        <Image source={{ uri: image }} style={{ width: 100, height: 100, }} />
-                    )}
-                    {image &&
-                        <Feather name="x-circle"
-                            size={30}
-                            onPress={() => { setImage(``) }}
-                            color="#a3a3a3"
-                            style={{ left: 20, top: 10 }} />
-                    }
-                </View>
-                <SafeAreaView style={styles.footer}>
-                    {/* {!press &&
-                        <TouchableOpacity onPress={pickImageForMessage} >
-                            <Image source={require('../../assets/img/camera.png')} style={{ width: 25, height: 25 }} />
-                        </TouchableOpacity>
-                    } */}
 
-                    <TextInput
-                        value={newMessage}
-                        multiline={true}
-                        placeholderTextColor="#888"
-                        onChangeText={(value) => {
-                            setNewMessage(value);
+                            let showSenderName = false
+                            let senderNameColor
+                            if (index === 0 || item?.sender?._id !== message[index - 1].sender?._id) {
+                                showSenderName = true
+                                senderNameColor = getRandomColor()
+                            }
+                            return (
+                                <View style={{ flex: 1 }}>
+                                    {shouldDisplayCreatedAt &&
+                                        <View style={{ marginVertical: 40, alignItems: "center", justifyContent: "center", height: 20, width: "20%", marginHorizontal: '40%', borderRadius: 20, backgroundColor: "rgba(250,250,250,0.5)" }}>
+                                            <Text style={{
+                                                textAlign: "center",
+                                                color: "#666666",
+                                                fontWeight: '500',
+                                                fontSize: 13,
+                                            }}>
+                                                {formatDay(item?.createdAt)}
+                                            </Text>
+                                        </View>
+                                    }
+                                    {showSenderName && isReceiver && (
+                                        <View>
+                                            {isGroup
+                                                ? <View style={{ height: 30, justifyContent: "flex-end" }}>
+                                                    <Text style={{ fontSize: 14, color: `${senderNameColor}`, marginLeft: 50 }}>{senderName}</Text>
+                                                </View>
+                                                : null
+                                            }
+                                            <View>
+                                                <Image source={item?.sender?.profilePicture ? { uri: item?.sender?.profilePicture } : blankAvatar}
+                                                    style={{
+                                                        width: 25, height: 25, borderRadius: 50, position: "absolute", bottom: -35, left: 10
+                                                    }}
+                                                />
+                                            </View>
+                                        </View>
+                                    )}
+                                    <Pressable key={index}
+                                        onPress={() => {
+                                            setSelectedMessage(item);
+                                            item?.image && setModalImageVisible(!isModalImageVisible);
+                                            console.log(senderName)
+                                        }}
+                                        style={[isUserDataSender
+                                            ? {
+                                                alignSelf: "flex-end",
+                                                backgroundColor: "#d7f7ef",
+                                                borderRadius: 15,
+                                                margin: 10,
+                                                marginHorizontal: 7,
+                                                marginVertical: 2,
+                                                maxWidth: '80%',
+                                                borderWidth: 1,
+                                                padding: item?.image ? 0 : 5,
+                                                flexDirection: 'column',
+                                                alignItems: "flex-end",
+                                                borderColor: "#eeeeee",
+                                            }
+                                            : {
+                                                alignSelf: "flex-start",
+                                                backgroundColor: "#FAFAFA",
+                                                borderRadius: 15,
+                                                maxWidth: "70%",
+                                                marginLeft: 40,
+                                                padding: item?.image ? 0 : 5,
+                                                flexDirection: 'column',
+                                                marginVertical: 2,
+                                            }
+                                        ]}>
+                                        {item?.text ? (
+                                            <View style={{ alignItems: "flex-start" }} >
+                                                {item?.image && (
+                                                    <Image
+                                                        defaultSource={{ uri: item?.image }}
+                                                        resizeMethod='resize'
+                                                        source={{ uri: item?.image }}
+                                                        style={{
+                                                            width: 200,
+                                                            height: 200,
+                                                            borderRadius: 10
+                                                        }}
+                                                    />
+                                                )}
+                                                <Text style={{ color: '#212121', fontSize: 17, maxWidth: "100%", paddingHorizontal: item?.image ? 0 : 10, }}>
+                                                    {item?.text}
+                                                </Text>
+                                            </View>
+                                        ) : (
+                                            <Image
+                                                source={{ uri: item?.image }}
+                                                style={{
+                                                    width: 200,
+                                                    height: 200,
+                                                    borderRadius: 10
+                                                }}
+                                            />
+                                        )}
+                                        <View style={item?.image ? {
+                                            position: 'absolute',
+                                            bottom: 10,
+                                            right: 10,
+                                            borderRadius: 10,
+                                            backgroundColor: "rgba(0, 0, 0, 0.3)",
+                                        } : {}}>
+                                            <Text
+                                                style={{
+                                                    textAlign: isUserDataSender ? "right" : "left",
+                                                    fontSize: 10,
+                                                    color: item?.image ? "#FAFAFA" : "#666666",
+                                                    paddingHorizontal: 5,
+                                                    paddingVertical: 1
+                                                }}
+                                            >
+                                                {formatTime(item?.createdAt)}
+                                            </Text>
+                                        </View>
+                                    </Pressable>
+                                </View>
+                            )
+                        })}
+                    </ScrollView>
+
+                    {/* soạn tin nhắn, gửi ảnh */}
+                    <View
+                        style={{
+                            justifyContent: "center",
+                            backgroundColor: "#f0f5f4",
+                            flexDirection: "row"
                         }}
-                        onFocus={() => setPress(true)}
-                        onBlur={() => setPress(false)}
-                        style={styles.messageInput}
-                        placeholder="Tin nhắn"
-                    />
+                    >
+                        {image && (
+                            <Image source={{ uri: image }} style={{ width: 100, height: 100, }} />
+                        )}
+                        {image &&
+                            <Feather name="x-circle"
+                                size={30}
+                                onPress={() => { setImage(``) }}
+                                color="#a3a3a3"
+                                style={{ left: 20, top: 10 }} />
+                        }
+                    </View>
 
-                    {(newMessage || image) ?
-                        <TouchableOpacity onPress={sendMessage}
-                            style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }}  >
-                            <FontAwesome name="send" size={30} color="#FF9134" />
-                        </TouchableOpacity>
-                        :
-                        <TouchableOpacity onPress={pickImageForMessage}
-                            style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }} >
-                            <Image source={require('../../assets/img/uploadPhoto.png')}
-                                style={{ width: 30, height: 30 }} />
-                        </TouchableOpacity>
-                    }
+                    <SafeAreaView style={styles.footer}>
+                        <TextInput
+                            value={newMessage}
+                            multiline={true}
+                            placeholderTextColor="#888"
+                            onChangeText={(value) => {
+                                setNewMessage(value);
+                            }}
+                            onFocus={() => setPress(true)}
+                            onBlur={() => setPress(false)}
+                            style={styles.messageInput}
+                            placeholder="Tin nhắn"
+                        />
 
-                </SafeAreaView>
+                        {(newMessage || image) ?
+                            <TouchableOpacity onPress={sendMessage}
+                                style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }}  >
+                                <FontAwesome name="send" size={30} color="#FF9134" />
+                            </TouchableOpacity>
+                            :
+                            <TouchableOpacity onPress={pickImageForMessage}
+                                style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }} >
+                                <Image source={require('../../assets/img/uploadPhoto.png')}
+                                    style={{ width: 30, height: 30 }} />
+                            </TouchableOpacity>
+                        }
+                    </SafeAreaView>
+                </ImageBackground>
             </KeyboardAvoidingView>
 
             {/* Show Image */}
@@ -498,18 +495,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: "100%",
         maxHeight: 150,
-        minHeight: 55,
         gap: 10,
         backgroundColor: "#FAFAFA",
-
-
     },
     messageInput: {
         flex: 1,
         fontSize: 18,
         maxHeight: 150,
         marginHorizontal: 10,
-        minHeight: 50,
+        minHeight: 55,
     },
     icon: {
         padding: 10,
@@ -520,7 +514,7 @@ const styles = StyleSheet.create({
 
     modalImageBackground: {
         flex: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.99)', // Màu đen với độ mờ 0.5 (50% mờ)
+        backgroundColor: '#f3f4fd', // Màu đen với độ mờ 0.5 (50% mờ)
         justifyContent: 'center',
         alignItems: 'center',
     },
