@@ -23,7 +23,6 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const numSelected = selectedIds.filter(index => index != userData._id).length
     const [conversation, setConversation] = useState([]);
-    // console.log(conversation)
     const [textSearch, setTextSearch] = useState<string>("");
     const [dataSearch, setDataSearch] = useState([]);
     //
@@ -41,7 +40,6 @@ const ChatScreen = ({ navigation, route }: any) => {
         return duplicate;
     });
 
-    // console.log(duplicateIDs);
     const isWatched = conversation
         .map(conversation => conversation.watched)
         .filter(info => info.some(obj => obj?._id === userData._id))
@@ -143,7 +141,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                 resetFriendSelection();
 
             } catch (error) {
-                // console.log(error)
+                console.log("error creating conversation", error)
             }
         }
     }
@@ -171,8 +169,8 @@ const ChatScreen = ({ navigation, route }: any) => {
             const listFriend = await getAllFriendApi();
             const { data } = listFriend;
             setFriends(data.friendList);
-        } catch (error: any) {
-            // console.log(error)
+        } catch (error) {
+            console.log("error", error)
         }
         setIsLoadingConversation(false);
     };
@@ -181,7 +179,7 @@ const ChatScreen = ({ navigation, route }: any) => {
         try {
             const res = await updateWatched(conversationId)
         } catch (error) {
-
+            console.log("error", error)
         }
     }
 
@@ -224,7 +222,6 @@ const ChatScreen = ({ navigation, route }: any) => {
                         groupName: item?.groupName,
                         groupAvatar: item?.groupAvatar
                     })
-                    console.log(isGroup)
                 }}
             >
 
@@ -384,7 +381,6 @@ const ChatScreen = ({ navigation, route }: any) => {
 
     return (
         <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
-            <StatusBar barStyle={'light-content'} backgroundColor={"#FFFFFF"} />
             {/* Header */}
             <View style={{ width: "100%", height: Platform.OS === 'ios' ? "11%" : "8%", backgroundColor: COLORS.main_color }}>
                 <Header
