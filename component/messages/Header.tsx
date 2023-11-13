@@ -3,6 +3,7 @@ import React from 'react'
 import { MaterialIcons } from '@expo/vector-icons'
 import { blankAvatar } from '../../screens/friendScreen/FriendScreen'
 import { useUnreadMessages } from '../../contexts/UnreadMessages '
+import COLORS from '../../assets/conts/color'
 
 const Header = ({
     navigation,
@@ -10,20 +11,20 @@ const Header = ({
     isModalUpdateVisible,
     isGroup,
     groupAvatar,
-    members, userData,
+    members,
+    userData,
     groupName,
     memberAvatar
 }: any) => {
     const { unreadMessages } = useUnreadMessages();
-
     return (
-        <View
+        <SafeAreaView
             style={{
                 width: "100%", height: "100%", justifyContent: "flex-start",
-                alignItems: "flex-end", flexDirection: "row", gap: 10
+                alignItems: "flex-end", flexDirection: "row", gap: 10, backgroundColor: COLORS.main_color,
             }}
         >
-            <StatusBar barStyle={'dark-content'} backgroundColor={"#FFFFFF"} />
+            <StatusBar barStyle={'light-content'} backgroundColor={COLORS.main_color} />
             <TouchableOpacity style={{ height: 50, justifyContent: "center" }}
                 onPress={() => navigation.navigate('HomeTabs', { screen: 'ChatScreen' })}
             >
@@ -31,7 +32,7 @@ const Header = ({
                     <MaterialIcons
                         name="arrow-back-ios"
                         size={27}
-                        color="#FF9134"
+                        color='#FFFFFF'
                     />
                     {unreadMessages > 0 && (
                         <View
@@ -40,14 +41,14 @@ const Header = ({
                                 left: 13,
                                 top: 3,
                                 borderRadius: 50,
-                                backgroundColor: '#FF9134',
+                                backgroundColor: '#FFFFFF',
                                 width: 20,
                                 height: 20,
                                 justifyContent: 'center',
                                 alignItems: 'center',
                             }}
                         >
-                            <Text style={{ color: '#FFFFFF', fontSize: 15 }}>
+                            <Text style={{ color: COLORS.main_color, fontSize: 15 }}>
                                 {unreadMessages}
                             </Text>
                         </View>
@@ -65,12 +66,12 @@ const Header = ({
                     alignItems: "center",
                     gap: 10
                 }}>
-
+                {/* Avatar */}
                 <View >
                     {groupAvatar && (
                         <View style={{
-                            width: 45,
-                            height: 45,
+                            width: 40,
+                            height: 40,
                             borderRadius: 50,
                             marginBottom: 5,
                         }}>
@@ -104,8 +105,8 @@ const Header = ({
                                             <Image
                                                 source={userData.profilePicture ? { uri: userData.profilePicture } : blankAvatar}
                                                 style={{
-                                                    right: 5, top: 12,
-                                                    width: 35, height: 35,
+                                                    right: 5, top: 15,
+                                                    width: 30, height: 30,
                                                     resizeMode: "cover",
                                                     borderRadius: 50,
                                                     borderColor: "#FFFFFF",
@@ -122,8 +123,8 @@ const Header = ({
                                             <Image
                                                 source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
                                                 style={{
-                                                    left: 15, bottom: 25,
-                                                    width: 35, height: 35,
+                                                    left: 10, bottom: 20,
+                                                    width: 30, height: 30,
                                                     resizeMode: "cover",
                                                     borderRadius: 50,
                                                     borderColor: "#FFFFFF",
@@ -134,8 +135,8 @@ const Header = ({
                                     </View>
                                 ) : (
                                     <View style={{
-                                        width: 45,
-                                        height: 45,
+                                        width: 40,
+                                        height: 40,
                                         borderRadius: 50,
                                         marginBottom: 5,
                                     }}>
@@ -151,22 +152,27 @@ const Header = ({
                         )
                     }
                 </View>
+                {/* Group name */}
+                <View style={{ flexDirection: "column" }}>
+                    <View style={{ flexDirection: "row" }}>
+                        <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center", color: COLORS.white }}>
+                            {groupName
+                                ? groupName
+                                : members.map(member => member.username).join(', ')}
+                        </Text>
+                        {/* {isGroup &&
+                            <MaterialIcons name="edit" size={20} color='#FDFDFD' />
+                        } */}
+                    </View>
+                    {isGroup &&
+                        <Text style={{ color: COLORS.white }}>
+                            {`${members.length + 1} thành viên`}
+                        </Text>
+                    }
 
-                {groupName &&
-                    <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
-                        {groupName}
-                    </Text>
-                    ||
-
-                    <Text style={{ fontSize: 20, fontWeight: "bold", textAlign: "center" }}>
-                        {members.map(member => member.username).join(', ')}
-                    </Text>
-                }
-                {isGroup &&
-                    <MaterialIcons name="edit" size={20} color="#fca120ad" />
-                }
+                </View>
             </TouchableOpacity>
-        </View>
+        </SafeAreaView>
     )
 }
 

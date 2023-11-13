@@ -9,7 +9,7 @@ const Header = ({ isModalVisible, setModalVisible, textSearch, setTextSearch }: 
             width: "100%", height: "100%", alignItems: "flex-end",
             backgroundColor: COLORS.main_color, flexDirection: "row",
         }}>
-            <StatusBar barStyle={'dark-content'} backgroundColor={COLORS.main_color} />
+            <StatusBar barStyle={'light-content'} backgroundColor={COLORS.main_color} />
             <View style={{
                 paddingLeft: 10, flex: 1, height: 40, gap: 10, flexDirection: "row", justifyContent: "center", alignItems: "center"
             }}>

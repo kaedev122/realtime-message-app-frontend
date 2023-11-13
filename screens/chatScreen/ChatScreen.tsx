@@ -23,7 +23,6 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const numSelected = selectedIds.filter(index => index != userData._id).length
     const [conversation, setConversation] = useState([]);
-    // console.log(conversation)
     const [textSearch, setTextSearch] = useState<string>("");
     const [dataSearch, setDataSearch] = useState([]);
     //
@@ -41,7 +40,6 @@ const ChatScreen = ({ navigation, route }: any) => {
         return duplicate;
     });
 
-    // console.log(duplicateIDs);
     const isWatched = conversation
         .map(conversation => conversation.watched)
         .filter(info => info.some(obj => obj?._id === userData._id))
@@ -143,7 +141,7 @@ const ChatScreen = ({ navigation, route }: any) => {
                 resetFriendSelection();
 
             } catch (error) {
-                // console.log(error)
+                console.log("error creating conversation", error)
             }
         }
     }
@@ -171,8 +169,8 @@ const ChatScreen = ({ navigation, route }: any) => {
             const listFriend = await getAllFriendApi();
             const { data } = listFriend;
             setFriends(data.friendList);
-        } catch (error: any) {
-            // console.log(error)
+        } catch (error) {
+            console.log("error", error)
         }
         setIsLoadingConversation(false);
     };
@@ -181,30 +179,40 @@ const ChatScreen = ({ navigation, route }: any) => {
         try {
             const res = await updateWatched(conversationId)
         } catch (error) {
-
+            console.log("error", error)
         }
     }
 
-    // Online
+    const getImageStyle = (index) => {
+        switch (index) {
 
+            case 2:
+                return { height: 19, width: 19, borderRadius: 10, resizeMode: "cover", borderColor: "#FFFFFF", borderWidth: 2, right: 7 };
+            case 1:
+                return { height: 19, width: 19, borderRadius: 10, resizeMode: "cover", borderColor: "#FFFFFF", borderWidth: 2, right: 7 };
+            case 0:
+                return { height: 19, width: 19, borderRadius: 10, resizeMode: "cover", borderColor: "#FFFFFF", borderWidth: 2 };
+            default:
+                return { height: 19, width: 19, borderRadius: 10, resizeMode: "cover", borderColor: "#FFFFFF", borderWidth: 2 };
+        }
+    };
 
     const renderConversationItem = ({ item }: any) => {
-        const members = item?.members?.filter((member: { _id: any; }) => member?._id != userData._id);
-        const numMembers = members.length
+        const members = item?.members?.filter((member: { _id: any; }) => member?._id != userData._id)
         const memberId = members.map((member: { _id: any; }) => member?._id)
-        const isOnline = memberId.some((memberId) => onlineUsers?.includes(memberId));
-        const memberNames = members.map((member: { username: any; }) => member?.username)
-        const memberAvatar = members.map((member: { profilePicture: any; }) => member?.profilePicture)
+        const isOnline = memberId.some((memberId) => onlineUsers?.includes(memberId))
+        const memberNames = members.map((member: { username: any }) => member?.username)
+        const memberAvatar = members.map((member: { profilePicture: any }) => member?.profilePicture)
         const isGroup = item?.group
-        const memberSeenInfo = item?.watched.filter((info: any) => info?._id)
+        const memberSeenInfo = item?.watched.filter((info: any) => info?._id !== userData._id).filter(info => info?._id !== item?.lastestMessage?.sender?._id)
         const memberSeenAvatar = memberSeenInfo.map((user: { profilePicture: any; }) => user?.profilePicture)
-        const isWatched = memberSeenInfo.map((info => info._id)).includes(userData._id)
-        console.log(isOnline)
+        const isWatched = item?.watched.filter((info: any) => info?._id).map(info => info._id).includes(userData._id)
+
         return (
             <TouchableOpacity
                 style={styles.conversation}
                 onPress={() => {
-                    isSeen(item?._id);
+                    isSeen(item?._id)
                     navigation.navigate('MessageScreen', {
                         userData: userData,
                         conversationId: item?._id,
@@ -214,7 +222,6 @@ const ChatScreen = ({ navigation, route }: any) => {
                         groupName: item?.groupName,
                         groupAvatar: item?.groupAvatar
                     })
-                    console.log(item)
                 }}
             >
 
@@ -237,43 +244,32 @@ const ChatScreen = ({ navigation, route }: any) => {
                     )
                     ||
                     (
-                        (numMembers > 1)
+                        (members.length > 1)
                             ? (
                                 <View style={styles.conversationImage}>
-                                    <View style={{
-                                        flex: 1,
-                                        padding: 1,
-                                    }}>
-                                        <Image
-                                            source={userData.profilePicture ? { uri: userData.profilePicture } : blankAvatar}
-                                            style={{
-                                                right: 0, top: 20,
-                                                width: 35, height: 35,
-                                                resizeMode: "cover",
-                                                borderRadius: 50,
-                                                borderColor: "#f3f4fb",
-                                                borderWidth: 2
-                                            }}
-                                        />
-                                    </View>
 
-
-                                    <View style={{
-                                        flex: 1,
-                                        padding: 1,
-                                    }}>
-                                        <Image
-                                            source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
-                                            style={{
-                                                right: 10, top: 5,
-                                                width: 35, height: 35,
-                                                resizeMode: "cover",
-                                                borderRadius: 50,
-                                                borderColor: "#f3f4fb",
-                                                borderWidth: 2
-                                            }}
-                                        />
-                                    </View>
+                                    <Image
+                                        source={userData.profilePicture ? { uri: userData.profilePicture } : blankAvatar}
+                                        style={{
+                                            right: 0, top: 20,
+                                            width: 35, height: 35,
+                                            resizeMode: "cover",
+                                            borderRadius: 50,
+                                            borderColor: "#f3f4fb",
+                                            borderWidth: 2
+                                        }}
+                                    />
+                                    <Image
+                                        source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
+                                        style={{
+                                            right: 15, top: 0,
+                                            width: 35, height: 35,
+                                            resizeMode: "cover",
+                                            borderRadius: 50,
+                                            borderColor: "#f3f4fb",
+                                            borderWidth: 2
+                                        }}
+                                    />
                                     {isOnline &&
                                         <View style={{
                                             height: 18, width: 18, backgroundColor: "#54cc0e", borderRadius: 10, borderWidth: 3,
@@ -364,9 +360,20 @@ const ChatScreen = ({ navigation, route }: any) => {
                         }
                     </View>
                 </View>
-                {!isWatched ?
-                    <View style={{ height: 13, width: 13, backgroundColor: COLORS.main_color, borderRadius: 20, marginRight: 10 }}>
-                    </View> : null}
+                {isWatched
+                    ? <View style={{ marginRight: 10, flexDirection: "row", alignItems: "flex-end" }}>
+                        {memberSeenAvatar.map((avatar, index) => (
+                            <Image
+                                key={index}
+                                style={getImageStyle(index)}
+                                source={avatar ? { uri: avatar } : blankAvatar}
+                            />
+                        ))}
+                    </View>
+                    : <View style={{ height: 13, width: 13, backgroundColor: COLORS.main_color, borderRadius: 20, marginRight: 10 }}>
+                    </View>
+
+                }
             </TouchableOpacity>
         );
     }
@@ -374,7 +381,6 @@ const ChatScreen = ({ navigation, route }: any) => {
 
     return (
         <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
-            <StatusBar barStyle={'dark-content'} backgroundColor={"#FFFFFF"} />
             {/* Header */}
             <View style={{ width: "100%", height: Platform.OS === 'ios' ? "11%" : "8%", backgroundColor: COLORS.main_color }}>
                 <Header

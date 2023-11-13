@@ -15,7 +15,10 @@ import {
     Dimensions,
     StatusBar,
     PermissionsAndroid,
-    SafeAreaView
+    SafeAreaView,
+    ImageBackground,
+    ScrollView,
+    Pressable
 } from 'react-native';
 import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
 import moment from 'moment';
@@ -26,10 +29,33 @@ import { formatDay, formatTime } from '../../component/formatTime';
 import { socket } from "../../utils/socket";
 import Header from '../../component/messages/Header';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import COLORS from '../../assets/conts/color';
+import ModalImageShow from '../../component/messages/modal/ModalImageShow';
+import ModalUpdateGroup from '../../component/messages/modal/UpdateGroup';
 
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
+function getRandomColor() {
+    const colors = [
+        '#3498db',
+        '#e74c3c',
+        '#2ecc71',
+        '#f39c12',
+        '#1abc9c',
+        '#9b59b6',
+        '#34495e',
+        '#d35400',
+        '#c0392b',
+        '#27ae60',
+        '#e67e22',
+        '#8e44ad',
+    ];
+
+    const randomIndex = Math.floor(Math.random() * colors.length);
+    return colors[randomIndex];
+}
+const randomColor = getRandomColor();
 const MessageScreen = ({ route, navigation }: any) => {
     const {
         userData,
@@ -40,13 +66,11 @@ const MessageScreen = ({ route, navigation }: any) => {
         groupName,
         groupAvatar
     } = route.params;
-    console.log(conversationId)
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [press, setPress] = useState<boolean>(false)
     //
     const [isModalUpdateVisible, setModalUpdateVisible] = useState(false);
-    const [newGroupName, setNewGroupName] = useState<string>(groupName)
-    const [newGroupAvatar, setNewGroupAvatar] = useState<string>(groupAvatar);
+    const [senderName, setSenderName] = useState('John Doe');
     //
     const [message, setMessage] = useState([]);
     const [renderedMessages, setRenderedMessages] = useState(50);
@@ -72,13 +96,21 @@ const MessageScreen = ({ route, navigation }: any) => {
     }
 
     //
-
     const scrollViewRef = useRef(null);
+
+    const scrollToBottom = () => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollToEnd({ animated: true })
+        }
+    }
+    const handleContentSizeChange = () => {
+        scrollToBottom();
+    }
+
     const [status, requestPermission] = ImagePicker.useCameraPermissions();
     useEffect(() => {
         scrollToBottom()
         getMessageOfConversation(conversationId);
-
     }, []);
 
     useEffect(() => {
@@ -92,14 +124,7 @@ const MessageScreen = ({ route, navigation }: any) => {
             setMessage([...message, arrivalMessage])
         }
     }, [arrivalMessage])
-    const scrollToBottom = () => {
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollToEnd({ animated: true })
-        }
-    }
-    const handleContentSizeChange = () => {
-        scrollToBottom();
-    }
+
 
 
     let lastDisplayedDate = null;
@@ -128,7 +153,6 @@ const MessageScreen = ({ route, navigation }: any) => {
         try {
             const res = await getMessageOfConversationApi(conversationId);
             const { data } = res
-            console.log("-------", data)
             setMessage(data);
         } catch (error) {
             alert("Lỗi" + error);
@@ -177,6 +201,8 @@ const MessageScreen = ({ route, navigation }: any) => {
                 socket?.emit("sendMessage", socketMessage);
                 setNewMessage('');
                 setImage("")
+
+                getMessageOfConversation(conversationId)
             }
             Keyboard.dismiss
 
@@ -184,152 +210,13 @@ const MessageScreen = ({ route, navigation }: any) => {
             alert(err);
         }
     }
-    const pickImageForUpdate = async () => {
-        let result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.All,
-            allowsEditing: true,
-            quality: 1,
-        });
-        if (!result.canceled) {
-            console.log(result.assets[0].uri)
-            setNewGroupAvatar(result.assets[0].uri)
-        }
-    }
-    const updateGroupChat = async () => {
-        setNewGroupName(newGroupName.trim());
-        const formData = new FormData()
-        formData.append("groupName", newGroupName)
-        formData.append("groupAvatar", {
-            uri: newGroupAvatar,
-            name: "image.jpg",
-            type: "image/jpeg",
-        })
-        try {
-            const res = await updateConversation(conversationId, formData)
-            console.log(res)
-            setNewGroupAvatar(newGroupAvatar)
-            setNewGroupName(newGroupName)
-            setModalUpdateVisible(!isModalUpdateVisible)
-            getMessageOfConversation(conversationId)
-        } catch (error) {
 
-        }
-    }
-    const renderMessageItem = ({ item, index }) => {
-        const shouldDisplayCreatedAt = shouldDisplayDay(index);
-        const senderInfo = members.find(member => member._id === item?.sender?._id);
-        const senderName = senderInfo ? senderInfo.username : null;
-        const isUserDataSender = item?.sender?._id === userData._id;
-        const isReceiver = item?.sender?._id != userData._id
-
-
-        let showSenderName = false;
-        if (index === 0 || item?.sender?._id !== message[index - 1].sender?._id) {
-            showSenderName = true;
-        }
-        return (
-            <View>
-                <View style={{ alignItems: "center" }}>
-                    {shouldDisplayCreatedAt &&
-                        <Text style={styles.createdAtText}>
-                            {formatDay(item?.createdAt)}
-                        </Text>}
-                </View>
-
-                {showSenderName && isReceiver && (
-                    <View style={{ height: 30, justifyContent: "flex-end" }}>
-                        <Text style={{ fontSize: 14, color: "lightgray", marginLeft: 50, }}>{senderName}</Text>
-                    </View>
-                )}
-                <TouchableOpacity
-                    onPress={() => {
-                        setSelectedMessage(item);
-                        item?.image && setModalImageVisible(!isModalImageVisible);
-                        console.log(item)
-                    }}
-
-                    style={[
-                        styles.messageContainer,
-                        {
-                            padding: item?.image ? 0 : 7,
-                            alignSelf: isUserDataSender ? 'flex-end' : 'flex-start',
-                            backgroundColor: isUserDataSender ? '#FF9134' : '#F5F5F5',
-                            marginLeft: isUserDataSender ? 0 : 50,
-
-                        },
-                    ]}
-                >
-                    {item?.text ? (
-                        <View>
-                            {item?.image && (
-                                <Image
-                                    source={{ uri: item?.image }}
-                                    style={{
-                                        width: 200,
-                                        height: 200,
-                                        borderRadius: 10
-                                    }}
-                                />
-                            )}
-                            <Text style={{
-                                color: isUserDataSender ? '#FFFFFF' : '#262626',
-                                fontSize: 17,
-                                padding: 2
-                            }}>{item?.text}</Text>
-                        </View>
-                    ) : (
-                        <Image
-                            source={{ uri: item?.image }}
-                            style={{
-                                width: 200,
-                                height: 200,
-                                borderRadius: 10
-                            }}
-                        />
-                    )}
-
-                    <Text
-                        style={[{
-                            textAlign: isUserDataSender ? "right" : "left",
-                            fontSize: 11,
-                            color: (item?.image && !item?.text || isUserDataSender) ? "white" : "gray",
-                            paddingHorizontal: 3
-                        }, item?.image && !item?.text && {
-                            position: "absolute",
-                            right: 5,
-                            bottom: 0,
-                            height: 20,
-                            paddingHorizontal: 10,
-                            backgroundColor: "#736a616b",
-                            overflow: 'hidden',
-                            borderRadius: 10
-                        }]}
-                    >
-                        {formatTime(item?.createdAt)}
-                    </Text>
-                </TouchableOpacity>
-                {showSenderName && isReceiver && (
-                    <View style={{ height: 30 }}>
-                        <Image source={item?.sender?.profilePicture ? { uri: item?.sender?.profilePicture } : blankAvatar}
-                            style={{
-                                width: 30, height: 30, borderRadius: 50, position: "absolute", bottom: 30, left: 10
-                            }}
-                        />
-                    </View>
-                )}
-            </View>
-        );
-    };
-    const handleTopReached = () => {
-        setRenderedMessages(renderedMessages + 50);
-    };
 
     return (
 
         <View style={{ backgroundColor: '#fff', flex: 1 }}>
-            <StatusBar barStyle={'dark-content'} backgroundColor="white" />
             {/* Header */}
-            <View style={{ height: "10%", width: "100%" }}>
+            <View style={{ width: "100%", height: Platform.OS === 'ios' ? "10%" : "8%", backgroundColor: COLORS.main_color }}>
                 <Header
                     navigation={navigation}
                     setModalUpdateVisible={setModalUpdateVisible}
@@ -347,77 +234,196 @@ const MessageScreen = ({ route, navigation }: any) => {
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 style={{ flex: 1 }}
             >
-                <View style={{ flex: 1 }}>
-                    <FlatList
-                        ref={scrollViewRef}
+                <ImageBackground
+                    source={require("../../assets/img/background-chat.png")}
+                    style={{ flex: 1 }}>
+                    <ScrollView
                         contentContainerStyle={{ flexGrow: 1 }}
+                        ref={scrollViewRef}
                         onContentSizeChange={handleContentSizeChange}
-                        initialNumToRender={renderedMessages}
-                        onEndReached={handleTopReached}
-                        onEndReachedThreshold={0.1}
-                        onRefresh={() => getMessageOfConversation(conversationId)}
-                        refreshing={isLoading}
-                        renderItem={item => renderMessageItem(item)}
-                        data={message}
-                        ListFooterComponent={() => (<View style={{ height: 30 }}></View>)}
-                    // inverte
-                    />
-                </View>
+                        showsVerticalScrollIndicator={true}
+                    >
+                        {message.map((item, index) => {
+                            const shouldDisplayCreatedAt = shouldDisplayDay(index);
+                            const senderInfo = members.find(member => member._id === item?.sender?._id);
+                            const senderName = senderInfo ? senderInfo.username : null;
+                            const isUserDataSender = item?.sender?._id === userData._id;
+                            const isReceiver = item?.sender?._id != userData._id
 
-                {/* soạn tin nhắn, gửi ảnh */}
-                <View
-                    style={{
-                        justifyContent: "center",
-                        backgroundColor: "#f0f5f4",
-                        flexDirection: "row"
-                    }}
-                >
-                    {image && (
-                        <Image source={{ uri: image }} style={{ width: 100, height: 100, }} />
-                    )}
-                    {image &&
-                        <Feather name="x-circle"
-                            size={30}
-                            onPress={() => { setImage(``) }}
-                            color="#a3a3a3"
-                            style={{ left: 20, top: 10 }} />
-                    }
-                </View>
-                <SafeAreaView style={styles.footer}>
-                    {/* {!press &&
-                        <TouchableOpacity onPress={pickImageForMessage} >
-                            <Image source={require('../../assets/img/camera.png')} style={{ width: 25, height: 25 }} />
-                        </TouchableOpacity>
-                    } */}
 
-                    <TextInput
-                        value={newMessage}
-                        multiline={true}
-                        placeholderTextColor="#888"
-                        onChangeText={(value) => {
-                            setNewMessage(value);
+                            let showSenderName = false
+                            let senderNameColor
+                            if (index === 0 || item?.sender?._id !== message[index - 1].sender?._id) {
+                                showSenderName = true
+                                senderNameColor = getRandomColor()
+                            }
+                            return (
+                                <View style={{ flex: 1 }}>
+                                    {shouldDisplayCreatedAt &&
+                                        <View style={{ marginVertical: 40, alignItems: "center", justifyContent: "center", height: 20, width: "20%", marginHorizontal: '40%', borderRadius: 20, backgroundColor: "rgba(250,250,250,0.5)" }}>
+                                            <Text style={{
+                                                textAlign: "center",
+                                                color: "#666666",
+                                                fontWeight: '500',
+                                                fontSize: 13,
+                                            }}>
+                                                {formatDay(item?.createdAt)}
+                                            </Text>
+                                        </View>
+                                    }
+                                    {showSenderName && isReceiver && (
+                                        <View>
+                                            {isGroup
+                                                ? <View style={{ height: 30, justifyContent: "flex-end" }}>
+                                                    <Text style={{ fontSize: 14, color: `${senderNameColor}`, marginLeft: 50 }}>{senderName}</Text>
+                                                </View>
+                                                : null
+                                            }
+                                            <View>
+                                                <Image source={item?.sender?.profilePicture ? { uri: item?.sender?.profilePicture } : blankAvatar}
+                                                    style={{
+                                                        width: 25, height: 25, borderRadius: 50, position: "absolute", bottom: -35, left: 10
+                                                    }}
+                                                />
+                                            </View>
+                                        </View>
+                                    )}
+                                    <Pressable key={index}
+                                        onPress={() => {
+                                            setSelectedMessage(item);
+                                            item?.image && setModalImageVisible(!isModalImageVisible);
+                                            console.log(senderName)
+                                        }}
+                                        style={[isUserDataSender
+                                            ? {
+                                                alignSelf: "flex-end",
+                                                backgroundColor: "#d7f7ef",
+                                                borderRadius: 15,
+                                                margin: 10,
+                                                marginHorizontal: 7,
+                                                marginVertical: 2,
+                                                maxWidth: '80%',
+                                                borderWidth: 1,
+                                                padding: item?.image ? 0 : 5,
+                                                flexDirection: 'column',
+                                                alignItems: "flex-end",
+                                                borderColor: "#eeeeee",
+                                            }
+                                            : {
+                                                alignSelf: "flex-start",
+                                                backgroundColor: "#FAFAFA",
+                                                borderRadius: 15,
+                                                maxWidth: "70%",
+                                                marginLeft: 40,
+                                                padding: item?.image ? 0 : 5,
+                                                flexDirection: 'column',
+                                                marginVertical: 2,
+                                            }
+                                        ]}>
+                                        {item?.text ? (
+                                            <View style={{ alignItems: "flex-start" }} >
+                                                {item?.image && (
+                                                    <Image
+                                                        defaultSource={{ uri: item?.image }}
+                                                        resizeMethod='resize'
+                                                        source={{ uri: item?.image }}
+                                                        style={{
+                                                            width: 200,
+                                                            height: 200,
+                                                            borderRadius: 10
+                                                        }}
+                                                    />
+                                                )}
+                                                <Text style={{ color: '#212121', fontSize: 17, maxWidth: "100%", paddingHorizontal: item?.image ? 0 : 10, }}>
+                                                    {item?.text}
+                                                </Text>
+                                            </View>
+                                        ) : (
+                                            <Image
+                                                source={{ uri: item?.image }}
+                                                style={{
+                                                    width: 200,
+                                                    height: 200,
+                                                    borderRadius: 10
+                                                }}
+                                            />
+                                        )}
+                                        <View style={item?.image ? {
+                                            position: 'absolute',
+                                            bottom: 10,
+                                            right: 10,
+                                            borderRadius: 10,
+                                            backgroundColor: "rgba(0, 0, 0, 0.3)",
+                                        } : {}}>
+                                            <Text
+                                                style={{
+                                                    textAlign: isUserDataSender ? "right" : "left",
+                                                    fontSize: 10,
+                                                    color: item?.image ? "#FAFAFA" : "#666666",
+                                                    paddingHorizontal: 5,
+                                                    paddingVertical: 1
+                                                }}
+                                            >
+                                                {formatTime(item?.createdAt)}
+                                            </Text>
+                                        </View>
+                                    </Pressable>
+                                </View>
+                            )
+                        })}
+                    </ScrollView>
+
+                    {/* soạn tin nhắn, gửi ảnh */}
+                    <View
+                        style={{
+                            justifyContent: "center",
+                            backgroundColor: "#f0f5f4",
+                            flexDirection: "row"
                         }}
-                        onFocus={() => setPress(true)}
-                        onBlur={() => setPress(false)}
-                        style={styles.messageInput}
-                        placeholder="Tin nhắn"
-                    />
+                    >
+                        {image && (
+                            <Image source={{ uri: image }} style={{ width: 100, height: 100, }} />
+                        )}
+                        {image &&
+                            <Feather name="x-circle"
+                                size={30}
+                                onPress={() => { setImage(``) }}
+                                color="#a3a3a3"
+                                style={{ left: 20, top: 10 }} />
+                        }
+                    </View>
 
-                    {(newMessage || image) ?
-                        <TouchableOpacity onPress={sendMessage}
-                            style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }}  >
-                            <FontAwesome name="send" size={30} color="#FF9134" />
-                        </TouchableOpacity>
-                        :
-                        <TouchableOpacity onPress={pickImageForMessage}
-                            style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }} >
-                            <Image source={require('../../assets/img/uploadPhoto.png')}
-                                style={{ width: 30, height: 30 }} />
-                        </TouchableOpacity>
-                    }
+                    <SafeAreaView style={styles.footer}>
+                        <TextInput
+                            value={newMessage}
+                            multiline={true}
+                            placeholderTextColor="#888"
+                            onChangeText={(value) => {
+                                setNewMessage(value);
+                            }}
+                            onFocus={() => setPress(true)}
+                            onBlur={() => setPress(false)}
+                            style={styles.messageInput}
+                            placeholder="Tin nhắn"
+                        />
 
-                </SafeAreaView>
+                        {(newMessage || image) ?
+                            <TouchableOpacity onPress={sendMessage}
+                                style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }}  >
+                                <FontAwesome name="send" size={30} color="#FF9134" />
+                            </TouchableOpacity>
+                            :
+                            <TouchableOpacity onPress={pickImageForMessage}
+                                style={{ height: 40, width: 40, alignItems: "center", justifyContent: "center", marginRight: 15 }} >
+                                <Image source={require('../../assets/img/uploadPhoto.png')}
+                                    style={{ width: 30, height: 30 }} />
+                            </TouchableOpacity>
+                        }
+                    </SafeAreaView>
+                </ImageBackground>
             </KeyboardAvoidingView>
+
+            {/* Show Image */}
             <Modal
                 animationType="fade"
                 transparent={true}
@@ -446,183 +452,14 @@ const MessageScreen = ({ route, navigation }: any) => {
             </Modal>
 
             {/* edit group name, group avatar */}
-            <Modal
-                animationType="fade"
-                transparent={true}
-                statusBarTranslucent={true}
-                visible={isModalUpdateVisible}
-                onRequestClose={() => setModalUpdateVisible(!isModalUpdateVisible)}
-            >
-                <View style={styles.modalUpdateBackground}>
-                    <TouchableOpacity style={styles.touchable}
-                        onPress={() => {
-                            setModalUpdateVisible(!isModalUpdateVisible)
-                            setNewGroupName("")
-                            setNewGroupAvatar("")
-                        }}>
-                    </TouchableOpacity>
-                    <View style={styles.modalUpdate}>
-                        <View
-                            style={{
-                                width: "100%",
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "space-between",
-                                position: "absolute"
-                            }}>
-
-                            <TouchableOpacity
-                                style={{
-                                    width: 50, height: 50, left: 10,
-                                    justifyContent: "center",
-                                    alignItems: "center"
-                                }}
-                                onPress={() => {
-                                    setModalUpdateVisible(!isModalUpdateVisible)
-                                    setNewGroupName('')
-                                    setNewGroupAvatar('')
-                                }}
-                            >
-                                <Text style={{ color: "#0a83f5", fontSize: 20 }}>Hủy</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={{
-                                    width: 50, height: 50, right: 12,
-                                    justifyContent: "center",
-                                    alignItems: "center"
-                                }}
-                                onPress={updateGroupChat}
-                            >
-                                <Text style={{ color: "#0a83f5", fontSize: 20, fontWeight: "bold" }}>Xong</Text>
-                            </TouchableOpacity>
-                        </View>
-
-
-                        <View style={{ marginVertical: 20 }}>
-                            {newGroupAvatar ?
-                                (
-
-                                    <View style={styles.conversationImage}>
-
-                                        <Image
-                                            source={{ uri: newGroupAvatar || groupAvatar }}
-                                            style={{
-                                                width: 70,
-                                                height: 70,
-                                                borderRadius: 50
-                                            }}
-                                        />
-                                    </View>
-                                )
-                                :
-                                (
-                                    (members.length > 1)
-                                    && (
-                                        <View style={styles.conversationImage}>
-                                            <View style={{
-                                                flex: 1,
-                                                padding: 1,
-                                            }}>
-                                                <Image
-                                                    source={userData.profilePicture ? { uri: userData.profilePicture } : blankAvatar}
-                                                    style={{
-                                                        right: 10, top: 20,
-                                                        width: 50, height: 50,
-                                                        resizeMode: "cover",
-                                                        borderRadius: 50,
-                                                        borderColor: "#f3f4fb",
-                                                        borderWidth: 2
-                                                    }}
-                                                />
-                                            </View>
-
-
-                                            <View style={{
-                                                flex: 1,
-                                                padding: 1,
-                                            }}>
-                                                <Image
-                                                    source={memberAvatar[0] ? { uri: memberAvatar[0] } : blankAvatar}
-                                                    style={{
-                                                        left: 10, bottom: 25,
-                                                        width: 50, height: 50,
-                                                        resizeMode: "cover",
-                                                        borderRadius: 50,
-                                                        borderColor: "#f3f4fb",
-                                                        borderWidth: 2
-                                                    }}
-                                                />
-                                            </View>
-                                        </View>
-                                    )
-                                )
-                            }
-
-                            {
-                                newGroupAvatar &&
-                                <Feather name="x-circle" size={24}
-                                    onPress={() => setNewGroupAvatar("")}
-                                    style={{
-                                        position: "absolute",
-                                        right: 0,
-                                        backgroundColor: "#f3f4fa",
-                                        borderRadius: 50,
-                                    }}
-                                />
-                            }
-                        </View>
-                        <View style={{
-                            width: "85%",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            marginVertical: 20
-                        }}>
-                            <TextInput
-                                style={{
-                                    backgroundColor: "#f3f4fb",
-                                    height: 50,
-                                    width: "100%",
-                                    fontSize: 20,
-                                    borderRadius: 10,
-                                    padding: 10,
-
-                                }}
-
-                                placeholder='Đặt tên đoạn chat'
-                                placeholderTextColor="#888"
-                                value={newGroupName}
-                                onChangeText={(value) => {
-                                    setNewGroupName(value)
-                                }}
-                            />
-                            {
-                                newGroupName &&
-
-                                <MaterialIcons name="cancel" size={25}
-                                    onPress={() => setNewGroupName("")}
-                                    style={{
-                                        position: "absolute",
-                                        right: 10,
-                                    }}
-                                />
-                            }
-
-                        </View>
-                        <View
-                            style={{
-                                height: 50,
-                                width: 50,
-                                backgroundColor: "#f3f4fb",
-                                borderRadius: 30,
-                                alignItems: "center",
-                                justifyContent: "center"
-                            }}>
-                            <FontAwesome onPress={pickImageForUpdate} name="picture-o" size={24} color="black" />
-                        </View>
-                        <Text>Tải lên</Text>
-                    </View>
-                </View>
-            </Modal >
+            <ModalUpdateGroup isModalUpdateVisible={isModalUpdateVisible}
+                setModalUpdateVisible={setModalUpdateVisible}
+                groupName={groupName}
+                groupAvatar={groupAvatar}
+                conversationId={conversationId}
+                members={members}
+                memberAvatar={memberAvatar}
+                userData />
         </View >
     );
 };
@@ -645,12 +482,6 @@ const styles = StyleSheet.create({
         marginRight: 10,
     },
 
-    messageContainer: {
-        borderRadius: 10,
-        marginHorizontal: 7,
-        marginVertical: 2,
-        maxWidth: '70%',
-    },
     messageText: {
         fontSize: 16,
     },
@@ -664,27 +495,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         width: "100%",
         maxHeight: 150,
-        minHeight: 55,
         gap: 10,
-        backgroundColor: "#e8e8e8",
-
-
-    },
-    createdAtText: {
-        textAlign: "center",
-        color: "#adacaa",
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        fontSize: 13,
-        marginVertical: 20,
+        backgroundColor: "#FAFAFA",
     },
     messageInput: {
         flex: 1,
-        backgroundColor: "#e8e8e8",
         fontSize: 18,
         maxHeight: 150,
         marginHorizontal: 10,
-        minHeight: 50,
+        minHeight: 55,
     },
     icon: {
         padding: 10,
@@ -695,7 +514,7 @@ const styles = StyleSheet.create({
 
     modalImageBackground: {
         flex: 1,
-        backgroundColor: 'rgba(255, 255, 255, 0.99)', // Màu đen với độ mờ 0.5 (50% mờ)
+        backgroundColor: '#f3f4fd', // Màu đen với độ mờ 0.5 (50% mờ)
         justifyContent: 'center',
         alignItems: 'center',
     },
