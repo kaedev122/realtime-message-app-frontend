@@ -13,11 +13,15 @@ export const registerApi = ({ email, username, password }: RegisterBody) => {
     return registerRequest
 }
 
-export const loginApi = ({ email, password }: LoginBody) => {
+export const loginApi = ({ email, password, device_token }: LoginBody) => {
     return axios({
         method: "POST",
         url: BASE_URL.concat("/auth/login"),
-        data: { email: email, password: password },
+        data: { 
+            email: email, 
+            password: password,
+            device_token: device_token
+        },
     })
 }
 

@@ -1,5 +1,5 @@
 import { Dimensions, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { validateEmail } from "../../utils/validate";
 import { setAccessToken } from '../../services/TokenService';
@@ -7,7 +7,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { showToast } from '../showToast';
 import { loginApi } from '../../services/AuthService';
 import Toast from 'react-native-toast-message';
-
+import { usePushNoti } from '../../utils/usePushNoti';
 
 const windowHeight = Dimensions.get('window').height
 const windowWidth = Dimensions.get('window').width
@@ -19,10 +19,8 @@ const Login = ({ checkAuthenticated }: any) => {
     const [passwordError, setPasswordError] = useState("")
     const [showPassword, setShowPassword] = useState(false)
     const [visible, setVisible] = useState(true)
-
-
-
-
+    const { expoPushToken } = usePushNoti()
+    
     const handleBlurEmail = () => {
         if (!email) {
             setEmailError("Vui lòng nhập địa chỉ email.")
@@ -46,7 +44,8 @@ const Login = ({ checkAuthenticated }: any) => {
             try {
                 const loginResponse = await loginApi({
                     "email": email,
-                    "password": password
+                    "password": password,
+                    "device_token": expoPushToken.data
                 })
 
                 const { data } = loginResponse
