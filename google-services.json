@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "918008537681",
+    "project_id": "realtime-chat-app-820e4",
+    "storage_bucket": "realtime-chat-app-820e4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:918008537681:android:ceb8ed3ceeb9d285994e70",
+        "android_client_info": {
+          "package_name": "com.kaedev_122.Chatapp_project"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAmKviWrH_kVnjwP_w8kokUsO9RU9IBxvs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

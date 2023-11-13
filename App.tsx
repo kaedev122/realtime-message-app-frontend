@@ -19,7 +19,8 @@ import UpdateUserScreen from './screens/userScreens/UpdateUserScreen';
 import { UnreadMessagesProvider, useUnreadMessages } from './contexts/UnreadMessages ';
 import AuthScreen from './screens/authScreen/AuthScreen';
 import OnlineUser from './component/conversations/OnlineUser';
-
+///
+import { usePushNoti } from './utils/usePushNoti';
 ///
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -132,6 +133,7 @@ function TabNavigator({ route }: any) {
 }
 
 const App = () => {
+
   return (
     <UnreadMessagesProvider>
       <NavigationContainer>
