@@ -148,7 +148,6 @@ const App = () => {
           <Stack.Screen name="NewChat" component={NewChat} />
 
           <Stack.Screen name="UserProfileScreen" component={UserProfileScreen} />
-          <Stack.Screen name="UpdateUserScreen" component={UpdateUserScreen} />
 
           <Stack.Screen name="SearchFriendScreen" component={SearchFriendScreen} />
           <Stack.Screen name="FriendScreen" component={FriendScreen} />

@@ -45,23 +45,20 @@ const UserProfileScreen = ({ navigation, route }: any) => {
 
       <View style={styles.menuContainer}>
         <TouchableOpacity style={styles.menuItem1} onPress={() => {
-          navigation.navigate('UpdateUserScreen', {
-            userData: userData
-          });
         }}>
           <FontAwesome name="user" size={28} color="black" />
           <Text style={styles.menuItemText}> Account</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="md-settings" size={28} color="black" />
-          <Text style={styles.menuItemText}>Settings</Text>
-        </TouchableOpacity>
+        {/*<TouchableOpacity style={styles.menuItem}>*/}
+        {/*  <Ionicons name="md-settings" size={28} color="black" />*/}
+        {/*  <Text style={styles.menuItemText}>Settings</Text>*/}
+        {/*</TouchableOpacity>*/}
 
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="md-sunny" size={28} color="black" />
-          <Text style={styles.menuItemText}>Appearance</Text>
-        </TouchableOpacity>
+        {/*<TouchableOpacity style={styles.menuItem}>*/}
+        {/*  <Ionicons name="md-sunny" size={28} color="black" />*/}
+        {/*  <Text style={styles.menuItemText}>Appearance</Text>*/}
+        {/*</TouchableOpacity>*/}
 
         <TouchableOpacity style={styles.menuItem}>
           <Ionicons name="notifications" size={28} color="black" />
@@ -103,22 +100,25 @@ const styles = StyleSheet.create({
     color: '#fff', // Màu chữ
   },
 
-
   userInfo: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: "black"
+    backgroundColor: "#FF9134",
+    height: 120
   },
   infor: {
-    paddingTop: 14,
+    paddingTop: 65,
     paddingVertical: 9
+
   },
   userImage: {
     alignContent: 'flex-start',
     width: 70,
     height: 70,
     marginHorizontal: 20,
-    marginVertical: 10
+    marginVertical: 10,
+    marginTop: 45,
+
   },
   username: {
     fontSize: 22,
@@ -127,10 +127,11 @@ const styles = StyleSheet.create({
   },
   email: {
     fontSize: 18,
-    color: 'gray',
+    color: 'white',
   },
   menuContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
+    marginTop:20
   },
   menuItem: {
     paddingVertical: 16,

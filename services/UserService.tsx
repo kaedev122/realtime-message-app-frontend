@@ -18,15 +18,27 @@ export const getUserDataByIdApi = (id: string) => {
     return userData
 }
 
-export const updateUserByIdApi = (id: string, userData: { username: string; password: string }) => {
-    const updateUserRequest = {
-        username: userData.username,
-        password: userData.password,
-    };
-    const options = axios({
-        method: "PUT",
-        url: BASE_URL.concat(`/user/profile/${id}`),
-        data: updateUserRequest
-    });
-    return options;
+// export const updateUserByIdApi = (id: string, userData: { username: string; password: string }) => {
+//     const updateUserRequest = {
+//         username: userData.username,
+//         password: userData.password,
+//     };
+//     const options = axios({
+//         method: "PUT",
+//         url: BASE_URL.concat(`/user/profile/${id}`),
+//         data: updateUserRequest
+//     });
+//     return options;
+// }
+
+
+const updateAvatar = (id: string, formData:any) => {
+    return axios.put(
+        BASE_URL.concat(`/user/profile/${id}`),
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
 }
