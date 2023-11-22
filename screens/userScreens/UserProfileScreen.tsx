@@ -5,10 +5,14 @@ import { deleteAccessToken, removeTokenFromAxios } from '../../services/TokenSer
 import { logoutApi } from '../../services/AuthService';
 import { blankAvatar } from '../friendScreen/FriendScreen';
 import { socket } from "../../utils/socket";
+import {useFocusEffect} from "@react-navigation/native";
+import {useCallback, useEffect, useState} from "react";
+import {getUserDataApi, getUserDataByIdApi} from "../../services/UserService";
 
 const UserProfileScreen = ({ navigation, route }: any) => {
   const { userData } = route.params
 
+  const [currentUserData, setCurrentUserData] = useState(userData);
   const logout = async () => {
     try {
       const accessToken = await deleteAccessToken()
@@ -24,21 +28,36 @@ const UserProfileScreen = ({ navigation, route }: any) => {
       console.log(error)
     }
   }
-
   const update = async () => {
     navigation.navigate("UpdateUserScreen")
   }
+
+  const getUserDatabyApi = async () => {
+    const res = await getUserDataApi();
+    console.log(currentUserData,"123")
+    setCurrentUserData(res.data.user)
+    return res.data.user
+  }
+
+  useFocusEffect(
+      useCallback(() => {
+        getUserDatabyApi();
+      }, [])
+  );
+
+
+
   return (
     <View style={styles.container}>
 
       <View style={styles.userInfo}>
         <Image style={styles.userImage}
-          source={userData?.profilePicture ? { uri: userData?.profilePicture } : blankAvatar}
+          source={userData?.profilePicture ? { uri: currentUserData?.profilePicture } : blankAvatar}
 
         />
         <View style={styles.infor} >
-          <Text style={styles.username}>{userData?.username}</Text>
-          <Text style={styles.email}>{userData?.email}</Text>
+          <Text style={styles.username}>{currentUserData?.username}</Text>
+          <Text style={styles.email}>{currentUserData?.email}</Text>
         </View>
 
       </View>

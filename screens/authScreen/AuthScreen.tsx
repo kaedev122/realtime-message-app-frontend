@@ -27,7 +27,7 @@ const AuthScreen = ({ navigation }: any) => {
             setStart(false)
         }, 2000)
     }, [])
-    const getUserData = async () => {
+     const getUserData = async () => {
         const res = await getUserDataApi();
         return res.data.user
     }

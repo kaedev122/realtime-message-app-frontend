@@ -1,33 +1,61 @@
-import React, { useState } from 'react';
+import React, {useId, useState} from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Image, Text, StatusBar } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { updateUserByIdApi } from '../../services/UserService';
+import {getUserDataApi, updateUserByIdApi} from '../../services/UserService';
 import { blankAvatar } from '../friendScreen/FriendScreen';
+import {updateConversation} from "../../services/ChatService";
+import * as ImagePicker from "expo-image-picker";
+
 
 const UpdateUserScreen = ({ navigation, route }: any) => {
   const { userData } = route.params;
   const [newUsername, setNewUsername] = useState(userData.username);
+  const [newEmail, setNewEmail] = useState(userData.email);
   const [newPassword, setNewPassword] = useState(userData.password);
 
+  const [newAvatar, setNewAvatar] = useState<string>(userData.profilePicture);
+
   const handleUpdate = async () => {
+    const formData = new FormData()
+    formData.append("username", newUsername)
+    formData.append("password", newPassword)
+    formData.append("email", newEmail)
+
+    formData.append("avatar", {
+      uri: newAvatar,
+      name: "image.jpg",
+      type: "image/jpeg",
+    })
     try {
-      const res = await updateUserByIdApi(userData._id, {
-        username: newUsername,
-        password: newPassword,
-      });
-      if (res.status === 200) {
-        alert('Thông tin người dùng đã được cập nhật thành công!');
-      } else {
-        alert('Đã xảy ra lỗi khi cập nhật thông tin người dùng!');
-      }
-    } catch (error: any) {
-      if (error.response.status === 403) {
-        alert('Bạn không có quyền cập nhật thông tin người dùng này!');
-      } else {
-        alert('Đã xảy ra lỗi khi cập nhật thông tin người dùng!');
-      }
+      const res = await updateUserByIdApi(userData._id, formData)
+      console.log(res)
+      setNewAvatar(newAvatar)
+      setNewEmail(newEmail)
+      setNewUsername(newUsername)
+      setNewPassword(newPassword)
+
+      navigation.goBack()
+    } catch (error) {
+        console.log(error)
     }
-  };
+
+  }
+  console.log(newAvatar)
+  console.log(newUsername)
+
+
+
+  const pickAvatarForUpdate = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      allowsEditing: true,
+      quality: 1,
+    });
+    if (!result.canceled) {
+      console.log(result.assets[0].uri)
+      setNewAvatar(result.assets[0].uri)
+    }
+  }
 
 
   return (
@@ -36,13 +64,41 @@ const UpdateUserScreen = ({ navigation, route }: any) => {
         {/* Phần xung quanh modal để bắt sự kiện bấm ra ngoài */}
       </TouchableOpacity>
       <View style={styles.userImage}>
-        <TouchableOpacity>
+        <TouchableOpacity  onPress={() => {pickAvatarForUpdate()}}>
 
-          <Image style={styles.mainImage}
-            source={userData?.profilePicture ? { uri: userData?.profilePicture } : blankAvatar}
-          />
+          {newAvatar ?
+              (
+
+                  <View >
+
+                    <Image
+                        source={{ uri: newAvatar || newAvatar }}
+                        style={{
+                          width: 160,
+                          height: 160,
+                          marginBottom: 70,
+                          alignItems: "center",
+                          justifyContent: "center"
+                        }}
+                    />
+                  </View>
+              ):
+              ( <Image style={styles.mainImage}
+                       source={userData?.profilePicture ? { uri: userData?.profilePicture } : blankAvatar}
+              />)
+          }
+
+
+
         </TouchableOpacity>
       </View>
+      <TextInput
+          style={styles.input}
+          placeholder=" Email"
+          secureTextEntry={false}
+          value={newEmail}
+          onChangeText={(text) => setNewEmail(text)}
+      />
       <TextInput
         style={styles.input}
         placeholder="Username"
@@ -57,7 +113,7 @@ const UpdateUserScreen = ({ navigation, route }: any) => {
         onChangeText={(text) => setNewPassword(text)}
       />
       <View style={{ justifyContent: "center", alignItems: "center" }}>
-        <TouchableOpacity onPress={handleUpdate}>
+        <TouchableOpacity onPress={handleUpdate }  >
           <LinearGradient
             colors={['#438875', '#99F2C8']}
             start={{ x: 0, y: 1 }}
