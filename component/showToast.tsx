@@ -7,9 +7,9 @@ export const showToast = (type, text1, text2) => {
         type,
         text1,
         text2,
-        position: "bottom",
+        position: "top",
         autoHide: true,
         visibilityTime: 4000,
-        bottomOffset: 100,
+        topOffset: 70,
     });
 };

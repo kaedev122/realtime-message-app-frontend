@@ -11,7 +11,7 @@ const getAllConversationApi = () => {
     return conversations
 }
 
-const getConversationOf2UserAPI = (userId, friendId) => {
+const getConversationOf2UserAPI = (userId: any, friendId: string) => {
     return axios({
         method: "GET",
         url: BASE_URL.concat(`/chat/c/${userId}/${friendId}`),
@@ -25,7 +25,7 @@ const getMessageOfConversationApi = (id: string) => {
     })
 }
 
-const sendMessageAPI = (formData) => {
+const sendMessageAPI = (formData: FormData) => {
     return axios.post(
         BASE_URL.concat(`/chat/m/`),
         formData,
@@ -55,7 +55,7 @@ const createNewGroupChat = ({ members }: NewGroupChatBody) => {
         },
     })
 }
-const updateConversation = (id: string, formData) => {
+const updateConversation = (id: string, formData: FormData) => {
     return axios.put(
         BASE_URL.concat(`/chat/c/group/${id}`),
         formData,

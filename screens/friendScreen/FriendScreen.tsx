@@ -15,12 +15,12 @@ import { addFriendApi, getAllFriendApi, unFriendApi } from "../../services/Frien
 import { AntDesign } from '@expo/vector-icons';
 import { createNewChat } from "../../services/ChatService";
 import { showToast } from "../../component/showToast";
+import { FlashList } from '@shopify/flash-list'
 import Toast from "react-native-toast-message";
 import Header from "../../component/Header";
 export const blankAvatar = require('../../assets/img/profileClone.jpg')
-
-const windownWidth = Dimensions.get('window').width
-const windownHeight = Dimensions.get('window').height
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const FriendScreen = ({ navigation, route }: any) => {
     const { userData } = route.params;
@@ -70,6 +70,7 @@ const FriendScreen = ({ navigation, route }: any) => {
                 onPress={() => {
                     setSelectedUser(item);
                     toggleModal();
+                    console.log(item)
                 }}
                 style={{
                     width: "100%",
@@ -80,18 +81,17 @@ const FriendScreen = ({ navigation, route }: any) => {
             >
                 <View
                     style={{
-                        paddingVertical: 15,
+                        paddingVertical: 10,
                         marginRight: 22,
                     }}
                 >
                     <Image
                         source={item.profilePicture ? { uri: item.profilePicture } : blankAvatar}
 
-                        resizeMode="contain"
                         style={{
-                            height: 50,
-                            width: 50,
-                            borderRadius: 25,
+                            height: 60,
+                            width: 60,
+                            borderRadius: 50,
                         }}
                     />
                 </View>
@@ -112,12 +112,14 @@ const FriendScreen = ({ navigation, route }: any) => {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
             <Header>
-                <Text style={{ fontSize: 20, fontWeight: "bold" }}>Bạn bè</Text>
+                <Text style={{ fontSize: 20, fontWeight: "600", color: "#FFFFFF", textAlign: "center" }}>
+                    Bạn bè
+                </Text>
 
             </Header>
-            <View style={styles.heading}>
+            {/* <View style={styles.heading}>
                 <View style={styles.header}>
                 </View>
                 <View style={{ width: "95%", flexDirection: "row", alignItems: "center" }}>
@@ -138,18 +140,10 @@ const FriendScreen = ({ navigation, route }: any) => {
                         }}
                     />
                 </View>
-            </View>
+            </View> */}
             <View style={{ flex: 1 }}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginHorizontal: 22,
-                        marginTop: 22,
-                    }}
-                />
-                <View style={{ paddingBottom: 100 }}>
+
+                <View style={{ width: "100%", height: "100%" }}>
                     <FlatList
                         onRefresh={getAllFriend}
                         refreshing={isLoading}
@@ -185,6 +179,8 @@ const FriendScreen = ({ navigation, route }: any) => {
                                 <TouchableOpacity
                                     style={styles.button}
                                     onPress={() => {
+                                        console.log(selectedUser)
+
                                     }}
                                 >
                                     <Text style={styles.buttonText}>Thông tin</Text>
@@ -204,7 +200,7 @@ const FriendScreen = ({ navigation, route }: any) => {
                 </Modal>
             </View>
             <Toast />
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -222,7 +218,7 @@ const styles = StyleSheet.create({
     },
     heading: {
         width: "100%",
-        height: windownHeight * 0.2 + 20,
+        height: windowHeight * 0.2 + 20,
         alignItems: "center",
         backgroundColor: "#fafafa"
     },
@@ -231,7 +227,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
-        marginTop: windownHeight * 0.09
+        marginTop: windowHeight * 0.09
     },
     searchInput: {
         backgroundColor: "#d3d3d3",
@@ -254,11 +250,11 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     modalContent: {
-        backgroundColor: "white",
+        backgroundColor: "#F3f4fd",
         borderRadius: 10,
         padding: 20,
-        width: windownWidth * 0.8,
-        maxHeight: windownHeight * 0.5,
+        width: windowWidth * 0.8,
+        maxHeight: windowHeight * 0.5,
         justifyContent: "center",
         alignItems: "center",
     },

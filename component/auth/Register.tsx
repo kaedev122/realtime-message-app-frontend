@@ -1,4 +1,4 @@
-import { Dimensions, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Dimensions, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
 import { Ionicons } from '@expo/vector-icons'
@@ -18,11 +18,25 @@ const Register = ({ setPage }: any) => {
     const [emailError, setEmailError] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [confirmedPasswordError, setConfirmedPasswordError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [visible, setVisible] = useState(true)
     const [visible1, setVisible1] = useState(true)
+
+    const showToast = (type, text1, text2) => {
+        Toast.show({
+            type,
+            text1,
+            text2,
+            position: "top",
+            autoHide: true,
+            visibilityTime: 4000,
+            topOffset: 30,
+
+        });
+    };
 
     const handleBlurUsername = () => {
         if (!username) {
@@ -59,6 +73,7 @@ const Register = ({ setPage }: any) => {
     const onSignUpPressed = async () => {
         if (username && validateEmail(email) && password && password === confirmedPassword) {
             try {
+                setIsLoading(true);
                 const signupResponse = await registerApi({
                     username: username,
                     email: email,
@@ -73,6 +88,9 @@ const Register = ({ setPage }: any) => {
                 }
             } catch (err) {
                 showToast("error", "Email đã tồn tại!")
+            }
+            finally {
+                setIsLoading(false);
             }
         } else {
             showToast("error", "Vui lòng nhập đủ thông tin‼‼")
@@ -180,7 +198,12 @@ const Register = ({ setPage }: any) => {
                 }}
                     onPress={onSignUpPressed}
                 >
-                    <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 18 }}>Đăng ký</Text>
+                    {isLoading ? (
+                        <ActivityIndicator size="large" color="#FFFFFF" />
+                    ) : (
+                        <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 18 }}>Đăng ký</Text>
+                    )}
+                    {/* <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 18 }}>Đăng ký</Text> */}
                 </TouchableOpacity>
             </View>
             <Toast />

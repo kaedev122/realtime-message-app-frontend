@@ -1,10 +1,9 @@
-import { Dimensions, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Dimensions, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Ionicons } from '@expo/vector-icons'
 import { validateEmail } from "../../utils/validate";
 import { setAccessToken } from '../../services/TokenService';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { showToast } from '../showToast';
 import { loginApi } from '../../services/AuthService';
 import Toast from 'react-native-toast-message';
 import { usePushNoti } from '../../utils/usePushNoti';
@@ -20,7 +19,8 @@ const Login = ({ checkAuthenticated }: any) => {
     const [showPassword, setShowPassword] = useState(false)
     const [visible, setVisible] = useState(true)
     const { expoPushToken } = usePushNoti()
-    
+    const [isLoading, setIsLoading] = useState(false);
+
     const handleBlurEmail = () => {
         if (!email) {
             setEmailError("Vui lòng nhập địa chỉ email.")
@@ -29,6 +29,18 @@ const Login = ({ checkAuthenticated }: any) => {
         } else {
             setEmailError("");
         }
+    };
+    const showToast = (type, text1, text2) => {
+        Toast.show({
+            type,
+            text1,
+            text2,
+            position: "top",
+            autoHide: true,
+            visibilityTime: 4000,
+            topOffset: 30,
+
+        });
     };
 
     const handleBlurPassword = () => {
@@ -42,6 +54,7 @@ const Login = ({ checkAuthenticated }: any) => {
     const onLoginPressed = async () => {
         if (validateEmail(email) && password) {
             try {
+                setIsLoading(true);
                 const loginResponse = await loginApi({
                     "email": email,
                     "password": password,
@@ -51,7 +64,7 @@ const Login = ({ checkAuthenticated }: any) => {
                 const { data } = loginResponse
                 console.log(data.success)
                 if (data.success === false) {
-                    showToast("error", "Thông tin không đúng!")
+                    showToast("error", "Thông tin không đúng❌")
                 }
                 const result = await setAccessToken(data?.token)
                 console.log("AccessToken", result)
@@ -59,8 +72,12 @@ const Login = ({ checkAuthenticated }: any) => {
             } catch (error) {
                 alert(error)
             }
+            finally {
+                setIsLoading(false);
+            }
         } else {
-            showToast("error", "Vui lòng nhập đủ thông tin!")
+            showToast("error", "Vui lòng nhập đủ thông tin‼‼")
+
         }
     }
     return (
@@ -120,7 +137,12 @@ const Login = ({ checkAuthenticated }: any) => {
                 }}
                     onPress={onLoginPressed}
                 >
-                    <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 18 }}>Đăng nhập</Text>
+                    {isLoading ? (
+                        <ActivityIndicator size="large" color="#FFFFFF" />
+                    ) : (
+                        <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 18 }}>Đăng nhập</Text>
+                    )}
+                    {/* <Text style={{ color: "#FFFFFF", fontWeight: "600", fontSize: 18 }}>Đăng nhập</Text> */}
                 </TouchableOpacity>
             </View>
             <Toast />

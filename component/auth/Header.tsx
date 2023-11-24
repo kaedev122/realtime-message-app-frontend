@@ -1,14 +1,15 @@
 import { Image, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
+import COLORS from '../../assets/conts/color'
 const DANG_NHAP = "DANG_NHAP"
 const DANG_KY = "DANG_KY"
 const Header = ({ page, setPage }: any) => {
     return (
         <View style={{ flex: 1 }}>
-            <StatusBar barStyle={'light-content'} />
+            <StatusBar barStyle={'light-content'} backgroundColor={COLORS.main_color} />
             <View style={{ width: "100%", height: "100%" }}>
                 <View style={{
-                    width: "100%", flex: 1, backgroundColor: "#FF9134",
+                    width: "100%", flex: 1, backgroundColor: COLORS.main_color,
                     justifyContent: "center", alignItems: "center"
                 }}>
                     <Text style={{ fontSize: 50, color: "#FFFFFF", fontWeight: "700" }}>
