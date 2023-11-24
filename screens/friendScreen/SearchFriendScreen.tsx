@@ -13,14 +13,15 @@ import {
     Button,
 } from "react-native";
 import { addFriendApi, getFriendByNameApi, getRandomFriendApi } from "../../services/FriendService";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, EvilIcons, Feather } from "@expo/vector-icons";
 import { FontAwesome } from '@expo/vector-icons';
 import Toast from "react-native-toast-message";
 import { showToast } from "../../component/showToast";
 import { blankAvatar } from "./FriendScreen";
-const windownWidth = Dimensions.get('window').width
-const windownHeight = Dimensions.get('window').height
-
+import Header from "../../component/Header";
+import COLORS from "../../assets/conts/color";
+const windowWidth = Dimensions.get('window').width;
+const windowHeight = Dimensions.get('window').height;
 
 const SearchFriendScreen = ({ navigation, route }: any) => {
     const [listFriend, setListFriend] = useState([]);
@@ -76,6 +77,7 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                 onPress={() => {
                     setSelectedUser(item);
                     toggleModal();
+                    console.log(item)
                 }}
                 style={{
                     width: "100%",
@@ -86,18 +88,17 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
             >
                 <View
                     style={{
-                        paddingVertical: 15,
+                        paddingVertical: 10,
                         marginRight: 22,
                     }}
                 >
                     <Image
                         source={item.profilePicture ? { uri: item.profilePicture } : blankAvatar}
 
-                        resizeMode="contain"
                         style={{
-                            height: 50,
-                            width: 50,
-                            borderRadius: 25,
+                            height: 60,
+                            width: 60,
+                            borderRadius: 50,
                         }}
                     />
                 </View>
@@ -109,6 +110,9 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                     <Text style={{ color: 'black' }}>
                         {item.username}
                     </Text>
+                    {/*<Text style={{fontSize: 14,}}>*/}
+                    {/*    {item.lastSeen}*/}
+                    {/*</Text>*/}
                 </View>
             </TouchableOpacity>
         );
@@ -120,42 +124,39 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
         getRandomFriend();
     }, []);
     return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.heading}>
-                <View style={styles.header}>
-                    <Text style={{ fontSize: 20, fontWeight: "bold" }}>Tìm Kiếm</Text>
-                </View>
-                <View style={{ width: "95%", flexDirection: "row", alignItems: "center" }}>
-                    <TextInput
-                        placeholder="Tìm kiếm"
-                        style={styles.searchInput}
-                        onChangeText={(text) => setSearchValue(text)}
-                    />
+        <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
+            <Header>
+                <SafeAreaView style={{
+                    width: "100%", height: "100%", alignItems: "flex-end",
+                    backgroundColor: COLORS.main_color, flexDirection: "row",
+                }}>
+                    {/* <StatusBar barStyle={'light-content'} backgroundColor={COLORS.main_color} /> */}
+                    <View style={{
+                        paddingLeft: 10, flex: 1, height: 40, gap: 10, flexDirection: "row", justifyContent: "center", alignItems: "center"
+                    }}>
+                        <TextInput
+                            placeholder="Tìm kiếm"
+                            placeholderTextColor={"#FFFFFF"}
+                            style={{ flex: 1, height: "100%", fontSize: 18, color: "#FFFFFF" }}
+                            onChangeText={(text) => setSearchValue(text)}
+
+                        />
+
+                    </View>
                     <TouchableOpacity
-                        style={{
-                            justifyContent: "center",
-                            width: 20,
-                            height: 20,
-                            position: "absolute",
-                            right: 10,
-                        }}
+                        style={{ width: 50, height: 40, alignItems: "center", justifyContent: "center" }}
                         onPress={searchFriends}
                     >
-                        <FontAwesome name="search" color="black" size={20} />
+                        <FontAwesome name="search" color="#FFFFFF" size={20} />
                     </TouchableOpacity>
-                </View>
-            </View>
+                </SafeAreaView>
+
+            </Header>
+
+
             <View style={{ flex: 1 }}>
-                <View
-                    style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginHorizontal: 22,
-                        marginTop: 22,
-                    }}
-                />
-                <View style={{ paddingBottom: 100 }}>
+
+                <View style={{ width: "100%", height: "100%" }}>
                     <FlatList
                         onRefresh={getRandomFriend}
                         refreshing={isLoading}
@@ -207,7 +208,7 @@ const SearchFriendScreen = ({ navigation, route }: any) => {
                 </View>
             </Modal>
             <Toast />
-        </SafeAreaView>
+        </View>
     );
 };
 
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     },
     heading: {
         width: "100%",
-        height: windownHeight * 0.2 + 20,
+        height: windowHeight * 0.2 + 20,
         alignItems: "center",
         backgroundColor: "#fafafa"
     },
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
-        marginTop: windownHeight * 0.09
+        marginTop: windowHeight * 0.09
     },
     searchInput: {
         backgroundColor: "#d3d3d3",
@@ -260,8 +261,8 @@ const styles = StyleSheet.create({
         backgroundColor: "white",
         borderRadius: 10,
         padding: 20,
-        width: windownWidth * 0.8,
-        maxHeight: windownHeight * 0.5,
+        width: windowWidth * 0.8,
+        maxHeight: windowHeight * 0.5,
         justifyContent: "center",
         alignItems: "center",
     },

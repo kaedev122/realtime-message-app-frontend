@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, StatusBar, Platform, SafeAreaView } from 'react-native'
+import { FlashList } from '@shopify/flash-list'
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useCallback } from 'react'
 import { EvilIcons, MaterialIcons } from '@expo/vector-icons';
@@ -64,8 +65,8 @@ const ChatScreen = ({ navigation, route }: any) => {
                 });
 
                 newState.sort((a, b) => {
-                    const dateA = new Date(a.lastestMessage.createdAt);
-                    const dateB = new Date(b.lastestMessage.createdAt);
+                    const dateA = new Date(a.lastestMessage?.createdAt);
+                    const dateB = new Date(b.lastestMessage?.createdAt);
                     return dateB - dateA;
                 });
 
@@ -125,7 +126,7 @@ const ChatScreen = ({ navigation, route }: any) => {
             showToast("error", "Không thể tải cuộc trò chuyện")
         }
         setIsLoadingConversation(false);
-        getAllFriend();
+        // getAllFriend();
     };
 
     const newGroupChat = async () => {
@@ -382,25 +383,27 @@ const ChatScreen = ({ navigation, route }: any) => {
     return (
         <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
             {/* Header */}
-            <View style={{ width: "100%", height: Platform.OS === 'ios' ? "11%" : "8%", backgroundColor: COLORS.main_color }}>
+            <StatusBar barStyle={'light-content'} backgroundColor={COLORS.main_color} />
+            <SafeAreaView style={{ width: "100%", height: Platform.OS === 'ios' ? "12%" : "9%", backgroundColor: COLORS.main_color }}>
                 <Header
                     textSearch={textSearch}
                     setTextSearch={setTextSearch}
                     setModalVisible={setModalVisible}
                     isModalVisible={isModalVisible} />
-            </View>
+            </SafeAreaView>
 
             {/* List Conversations */}
             <View style={{ flex: 1, }}>
-                <FlatList
+                <FlashList
+                    estimatedItemSize={20}
                     onRefresh={getConversation}
                     refreshing={isLoadingConversation}
                     data={textSearch ? dataSearch : conversation}
                     renderItem={(item) => renderConversationItem(item)}
                     ListEmptyComponent={() => (
                         <View style={{ alignItems: "center", justifyContent: "center", width: "100%", height: 400 }}>
-                            <Image style={{ width: "70%", height: "70%", marginBottom: 20 }} source={require("../../assets/img/thought-bubble.png")} />
-                            <Text numberOfLines={2} style={{ position: "absolute", top: 130, fontSize: 25, textAlign: "center", width: "50%" }}>Chưa có cuộc trò chuyện nào!</Text>
+                            <Image style={{ width: "60%", height: "60%", marginBottom: 20 }}
+                                source={require("../../assets/img/speech-bubble.gif")} />
                         </View>
                     )}
                     ListHeaderComponent={() => (

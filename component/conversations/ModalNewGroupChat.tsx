@@ -1,5 +1,6 @@
 import { Dimensions, FlatList, Image, Modal, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import React from 'react'
+import { FlashList } from '@shopify/flash-list'
 import { MaterialIcons } from '@expo/vector-icons'
 import { blankAvatar } from '../../screens/friendScreen/FriendScreen'
 import Checkbox from 'expo-checkbox'
@@ -193,10 +194,12 @@ const ModalNewGroupChat = ({
                     </View>
                     <View
                         style={{
-                            flex: 1,
+                            width: "100%",
+                            height: "100%",
                             marginHorizontal: 5,
                         }}>
-                        <FlatList
+                        <FlashList
+                            estimatedItemSize={20}
                             onRefresh={getAllFriend}
                             refreshing={isLoadingFriend}
                             data={friendSearch ? dataFriendSearch : friends}
