@@ -1,9 +1,9 @@
-import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, StatusBar, Platform, SafeAreaView } from 'react-native'
+import { StyleSheet, Text, View, TextInput, Dimensions, FlatList, TouchableOpacity, Image, StatusBar, Platform, SafeAreaView, Pressable, Modal } from 'react-native'
 import { FlashList } from '@shopify/flash-list'
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useState, useEffect, useCallback } from 'react'
 import { EvilIcons, MaterialIcons } from '@expo/vector-icons';
-import { createNewGroupChat, createNewChat, getAllConversationApi, updateWatched } from '../../services/ChatService'
+import { createNewGroupChat, createNewChat, getAllConversationApi, updateWatched, addGroupMember } from '../../services/ChatService'
 import { getAllFriendApi } from '../../services/FriendService';
 import { showToast } from '../../component/showToast';
 import Toast from 'react-native-toast-message';
@@ -31,9 +31,10 @@ const ChatScreen = ({ navigation, route }: any) => {
     const [friends, setFriends] = useState([]);
     const [dataFriendSearch, setDataFriendSearch] = useState([]);
     const [isModalVisible, setModalVisible] = useState(false);
+    const [isModalEdit, setModalEdit] = useState(false);
+    const [idGroupEdit, setIdGroupEdit] = useState('');
     const [onlineUsers, setOnlineUsers] = useState([])
     const { setUnreadMessages } = useUnreadMessages()
-
     const seen = conversation.map(conversation => conversation.watched)
     const duplicateIDs = seen.flatMap(subArray => {
         const ids = subArray.map(item => item._id);
@@ -146,6 +147,22 @@ const ChatScreen = ({ navigation, route }: any) => {
             }
         }
     }
+    const handleAddGroupMember = async () => {
+        try {
+            const res = await addGroupMember(idGroupEdit, {
+                "members": selectedIds
+            });
+            getConversation();
+            setSelectedIds([]);
+            setIdGroupEdit('')
+            setModalEdit(false)
+            setModalVisible(false);
+            showToast("success", "Thành công");
+            resetFriendSelection();
+        } catch (error) {
+            console.log("error add members to group", error);
+        }
+    };
 
 
     const handleSearch = (textSearch: string) => {
@@ -198,6 +215,7 @@ const ChatScreen = ({ navigation, route }: any) => {
         }
     };
 
+
     const renderConversationItem = ({ item }: any) => {
         const members = item?.members?.filter((member: { _id: any; }) => member?._id != userData._id)
         const memberId = members.map((member: { _id: any; }) => member?._id)
@@ -210,9 +228,10 @@ const ChatScreen = ({ navigation, route }: any) => {
         const isWatched = item?.watched.filter((info: any) => info?._id).map(info => info._id).includes(userData._id)
 
         return (
-            <TouchableOpacity
+            <Pressable
                 style={styles.conversation}
                 onPress={() => {
+                    console.log(item?._id)
                     isSeen(item?._id)
                     navigation.navigate('MessageScreen', {
                         userData: userData,
@@ -223,11 +242,20 @@ const ChatScreen = ({ navigation, route }: any) => {
                         groupName: item?.groupName,
                         groupAvatar: item?.groupAvatar
                     })
+
                 }}
+                onLongPress={() =>
+                // // setModalVisible(!isModalVisible)
+                {
+                    setModalEdit(true)
+                    setIdGroupEdit(item?._id)
+                }
+                }
             >
 
                 {/* Avatar */}
-                {item?.groupAvatar &&
+                {
+                    item?.groupAvatar &&
                     (
                         <View style={styles.conversationImage}>
                             <Image
@@ -361,24 +389,24 @@ const ChatScreen = ({ navigation, route }: any) => {
                         }
                     </View>
                 </View>
-                {isWatched
-                    ? <View style={{ marginRight: 10, flexDirection: "row", alignItems: "flex-end" }}>
-                        {memberSeenAvatar.map((avatar, index) => (
-                            <Image
-                                key={index}
-                                style={getImageStyle(index)}
-                                source={avatar ? { uri: avatar } : blankAvatar}
-                            />
-                        ))}
-                    </View>
-                    : <View style={{ height: 13, width: 13, backgroundColor: COLORS.main_color, borderRadius: 20, marginRight: 10 }}>
-                    </View>
+                {
+                    isWatched
+                        ? <View style={{ marginRight: 10, flexDirection: "row", alignItems: "flex-end" }}>
+                            {memberSeenAvatar.map((avatar, index) => (
+                                <Image
+                                    key={index}
+                                    style={getImageStyle(index)}
+                                    source={avatar ? { uri: avatar } : blankAvatar}
+                                />
+                            ))}
+                        </View>
+                        : <View style={{ height: 13, width: 13, backgroundColor: COLORS.main_color, borderRadius: 20, marginRight: 10 }}>
+                        </View>
 
                 }
-            </TouchableOpacity>
+            </Pressable >
         );
     }
-
 
     return (
         <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
@@ -445,7 +473,38 @@ const ChatScreen = ({ navigation, route }: any) => {
                 friendSearch={friendSearch}
                 dataFriendSearch={dataFriendSearch}
                 isLoadingFriend={isLoadingFriend}
+                isModalEdit={isModalEdit}
+                setModalEdit={setModalEdit}
+                handleAddGroupMember={handleAddGroupMember}
+                idGroupEdit={idGroupEdit}
+                setIdGroupEdit={setIdGroupEdit}
             />
+            <Modal
+                animationType="fade"
+                transparent={true}
+                statusBarTranslucent={true}
+                visible={isModalEdit}
+                onRequestClose={() => setModalEdit(!isModalEdit)}>
+                <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: isModalEdit ? "rgba(0,0,0,0.5)" : undefined }}>
+                    <TouchableOpacity style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                    }} onPress={() => setModalEdit(false)}>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setModalVisible(!isModalVisible)}
+                        style={{ backgroundColor: COLORS.main_color, padding: 5, borderRadius: 20 }}>
+                        <Text style={{ color: "white", fontWeight: "700", fontSize: 18 }}>
+                            Thêm thành viên
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+
+            </Modal>
+
             <Toast />
         </View>
     );

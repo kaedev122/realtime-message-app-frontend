@@ -18,6 +18,7 @@ import { showToast } from "../../component/showToast";
 import { FlashList } from '@shopify/flash-list'
 import Toast from "react-native-toast-message";
 import Header from "../../component/Header";
+import { socket } from "../../utils/socket";
 export const blankAvatar = require('../../assets/img/profileClone.jpg')
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
@@ -31,7 +32,7 @@ const FriendScreen = ({ navigation, route }: any) => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalVisible, setModalVisible] = useState(false);
     const [conversations, setConversations] = useState([]);
-
+    const [onlineUsers, setOnlineUsers] = useState([])
     const getAllFriend = async () => {
         setIsLoading(true);
         try {
@@ -45,8 +46,12 @@ const FriendScreen = ({ navigation, route }: any) => {
     };
 
     useEffect(() => {
+        socket?.on("getUsersOnline", (data: React.SetStateAction<never[]>) => {
+            console.log("-----------Online users--------------", data)
+            setOnlineUsers(data)
+        })
         getAllFriend();
-    }, []);
+    }, [socket]);
 
     const toggleModal = () => {
         setModalVisible(!isModalVisible);
@@ -65,12 +70,17 @@ const FriendScreen = ({ navigation, route }: any) => {
         }
     };
     const renderFriendItem = ({ item }: any) => {
+        const isOnline = onlineUsers.includes(item?._id)
+
         return (
             <TouchableOpacity
                 onPress={() => {
                     setSelectedUser(item);
                     toggleModal();
-                    console.log(item)
+                    console.log(item?._id)
+                    console.log(onlineUsers)
+                    console.log(isOnline)
+
                 }}
                 style={{
                     width: "100%",
@@ -94,6 +104,11 @@ const FriendScreen = ({ navigation, route }: any) => {
                             borderRadius: 50,
                         }}
                     />
+                    {isOnline &&
+                        <View style={{
+                            height: 18, width: 18, backgroundColor: "#54cc0e", borderRadius: 10, borderWidth: 3,
+                            position: "absolute", bottom: 0, right: 0, borderColor: "#FFFFFF"
+                        }}></View>}
                 </View>
                 <View
                     style={{
@@ -163,6 +178,14 @@ const FriendScreen = ({ navigation, route }: any) => {
                     visible={isModalVisible}
                     onRequestClose={toggleModal}
                 >
+                    <TouchableOpacity style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                    }} onPress={toggleModal}>
+                    </TouchableOpacity>
                     <View style={styles.modalContainer}>
                         <View style={styles.modalContent}>
                             <TouchableOpacity
@@ -247,7 +270,7 @@ const styles = StyleSheet.create({
     modalContainer: {
         flex: 1,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     },
     modalContent: {
         backgroundColor: "#F3f4fd",

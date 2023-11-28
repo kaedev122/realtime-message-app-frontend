@@ -11,5 +11,7 @@ export interface NewChatBody {
 }
 export interface NewGroupChatBody {
     members: [string]
-
+}
+export interface AddGroupMemberBody {
+    members: [string]
 }

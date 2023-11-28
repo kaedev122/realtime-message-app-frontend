@@ -232,6 +232,8 @@ const UserProfileScreen = ({ navigation, route }: any) => {
               </Text>
               <View style={styles.inputContainer}>
                 <TextInput
+                  keyboardType='email-address'
+                  autoCapitalize='none'
                   style={{ height: "100%", flex: 1, fontSize: 18, paddingLeft: 10 }}
                   placeholder=" Email"
                   secureTextEntry={false}
