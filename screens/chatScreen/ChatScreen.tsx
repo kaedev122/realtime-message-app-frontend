@@ -215,7 +215,6 @@ const ChatScreen = ({ navigation, route }: any) => {
         }
     };
 
-
     const renderConversationItem = ({ item }: any) => {
         const members = item?.members?.filter((member: { _id: any; }) => member?._id != userData._id)
         const memberId = members.map((member: { _id: any; }) => member?._id)
@@ -244,11 +243,9 @@ const ChatScreen = ({ navigation, route }: any) => {
                     })
 
                 }}
-                onLongPress={() =>
-                // // setModalVisible(!isModalVisible)
-                {
-                    setModalEdit(true)
-                    setIdGroupEdit(item?._id)
+                onLongPress={() => {
+                    isGroup && setModalEdit(true)
+                    isGroup && setIdGroupEdit(item?._id)
                 }
                 }
             >
