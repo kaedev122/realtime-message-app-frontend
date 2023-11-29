@@ -1,5 +1,5 @@
 import axios from "axios"
-import { MessageBody, NewChatBody, NewGroupChatBody } from "./interfaces/IMessage"
+import { AddGroupMemberBody, MessageBody, NewChatBody, NewGroupChatBody } from "./interfaces/IMessage"
 
 const BASE_URL = 'https://realtime-chat-app-server-88535f0d324c.herokuapp.com/api';
 
@@ -55,6 +55,9 @@ const createNewGroupChat = ({ members }: NewGroupChatBody) => {
         },
     })
 }
+const addGroupMember = (id: any, { members }: AddGroupMemberBody) => {
+    return axios.put(BASE_URL.concat(`/chat/c/add-members/${id}`), { members: members })
+}
 const updateConversation = (id: string, formData: FormData) => {
     return axios.put(
         BASE_URL.concat(`/chat/c/group/${id}`),
@@ -78,5 +81,6 @@ export {
     createNewGroupChat,
     updateConversation,
     updateWatched,
-    getConversationOf2UserAPI
+    getConversationOf2UserAPI,
+    addGroupMember
 }

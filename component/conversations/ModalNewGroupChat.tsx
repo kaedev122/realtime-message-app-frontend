@@ -20,7 +20,12 @@ const ModalNewGroupChat = ({
     numSelected,
     friendSearch,
     dataFriendSearch,
-    isLoadingFriend
+    isLoadingFriend,
+    setModalEdit,
+    isModalEdit,
+    handleAddGroupMember,
+    idGroupEdit,
+    setIdGroupEdit
 }: any) => {
 
 
@@ -121,7 +126,8 @@ const ModalNewGroupChat = ({
             <StatusBar barStyle={'light-content'} />
             <View style={{ height: windowHeight, width: windowWidth, justifyContent: "flex-end", backgroundColor: 'rgba(0, 0, 0, 0.9)' }}>
                 <View style={{
-                    borderRadius: 20,
+                    borderTopRightRadius: 20,
+                    borderTopLeftRadius: 20,
                     alignItems: 'center',
                     backgroundColor: "white",
                     width: "100%",
@@ -140,6 +146,8 @@ const ModalNewGroupChat = ({
                             setFriendSearch("");
                             setModalVisible(!isModalVisible);
                             resetFriendSelection();
+                            setModalEdit(false),
+                                setIdGroupEdit('')
                         }}
                     >
                         <Text style={{ color: "#FF9134", fontSize: 20 }}>Hủy</Text>
@@ -152,9 +160,16 @@ const ModalNewGroupChat = ({
                             top: 0,
                             padding: 10,
                         }}
-                        onPress={newGroupChat}
+
+                        onPress={isModalEdit ? handleAddGroupMember : newGroupChat}
                     >
-                        <Text style={{ color: (numSelected > 1) ? "#FF9134" : "#eee", fontSize: 20, fontWeight: "bold" }}>Tạo</Text>
+                        {isModalEdit
+
+                            ? <Text style={{ color: (numSelected > 0) ? "#FF9134" : "#eee", fontSize: 20, fontWeight: "bold" }}>
+                                Thêm</Text>
+                            : <Text style={{ color: (numSelected > 1) ? "#FF9134" : "#eee", fontSize: 20, fontWeight: "bold" }}>
+                                Tạo</Text>
+                        }
                     </TouchableOpacity>
                     {/* Search */}
                     <View style={{

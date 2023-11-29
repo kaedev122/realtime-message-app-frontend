@@ -18,9 +18,10 @@ import {
     SafeAreaView,
     ImageBackground,
     ScrollView,
-    Pressable
+    Pressable,
+    ActivityIndicator
 } from 'react-native';
-import { MaterialIcons, FontAwesome, Feather } from '@expo/vector-icons';
+import { MaterialIcons, FontAwesome, Feather, Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
 import * as ImagePicker from 'expo-image-picker';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
@@ -87,6 +88,10 @@ const MessageScreen = ({ route, navigation }: any) => {
     const reversedMessage = message.slice().reverse();
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [endOfMessages, setEndOfMessages] = useState(false);
+
+    const [loading, setLoading] = useState(false);
+    const [sendSuccess, setSendSuccess] = useState(false);
+
     const socketRef = useRef();
 
     const openCamera = async () => {
@@ -174,10 +179,9 @@ const MessageScreen = ({ route, navigation }: any) => {
     }
     console.log(newMessage)
 
+    // Gửi tin nhắn
     const sendMessage = async () => {
-
         setNewMessage(newMessage.trim());
-
         const newMessageObject = {
             _id: `${Date.now()}-${userData?._id}`,
             conversationId: conversationId,
@@ -191,11 +195,17 @@ const MessageScreen = ({ route, navigation }: any) => {
             },
             members: members,
         };
+
         setMessage((prevMessages) => prevMessages.concat(newMessageObject));
         setNewMessage('');
         setImage('');
-        console.log(newMessageObject)
-        if (!image && newMessage.trim() === '') return
+        setLoading(true)
+
+        if (!image && newMessage.trim() === '') {
+            setLoading(false)
+            return
+        }
+
         const formData = new FormData();
         formData.append("conversationId", conversationId);
         formData.append("sender", userData._id);
@@ -222,20 +232,25 @@ const MessageScreen = ({ route, navigation }: any) => {
                 },
                 members: members,
             };
+            // setMessage((prevMessages) => prevMessages.concat(socketMessage));
             if (status === 200) {
-                socket?.emit("sendMessage", socketMessage);
-                // getMessageOfConversation(conversationId)
-            }
-            else {
-                showToast("error", "Có lỗi xảy ra khi gửi tin nhắn")
-            }
-            const updatedMessage = message.map(msg => (msg._id === newMessageObject._id ? data : msg));
-            setMessage(updatedMessage);
+                const updatedMessages = message.map(msg =>
+                    msg._id === newMessageObject._id ? { ...data, _id: newMessageObject._id } : msg
+                );
 
+                setMessage(updatedMessages);
+                socket?.emit("sendMessage", socketMessage);
+                console.log("Gửi thành công");
+                setSendSuccess(true);
+            } else {
+                showToast("error", "Có lỗi xảy ra khi gửi tin nhắn");
+            }
             Keyboard.dismiss();
 
         } catch (err) {
             alert(err);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -373,19 +388,29 @@ const MessageScreen = ({ route, navigation }: any) => {
                         right: 10,
                         borderRadius: 10,
                         backgroundColor: "rgba(0, 0, 0, 0.3)",
-                    } : {}}>
+                        flexDirection: "row",
+                        paddingHorizontal: 5
+                    } : {
+                        flexDirection: "row",
+                        marginHorizontal: 5,
+                    }}>
                         <Text
                             style={{
                                 textAlign: isUserDataSender ? "right" : "left",
                                 fontSize: 10,
                                 color: item?.image ? "#FAFAFA" : "#666666",
-                                paddingHorizontal: 5,
                                 paddingVertical: 1,
-                                marginHorizontal: 5
                             }}
                         >
                             {formatTime(item?.createdAt)}
                         </Text>
+                        {reversedIndex === message.length - 1 && isUserDataSender
+                            ?
+                            loading
+                                ? <ActivityIndicator size={'small'} />
+                                : (sendSuccess && <Ionicons name="ios-checkmark-done-outline" size={15} color={item?.image ? "#FAFAFA" : "#666666"} />)
+                            : null
+                        }
                     </View>
                 </Pressable>
             </View>
@@ -573,7 +598,7 @@ const styles = StyleSheet.create({
 
     modalImageBackground: {
         flex: 1,
-        backgroundColor: '#f3f4fd', // Màu đen với độ mờ 0.5 (50% mờ)
+        backgroundColor: '#f3f4fd',
         justifyContent: 'center',
         alignItems: 'center',
     },
