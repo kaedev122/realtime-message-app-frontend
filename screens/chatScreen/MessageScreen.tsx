@@ -24,7 +24,6 @@ import {
 import { MaterialIcons, FontAwesome, Feather, Ionicons } from '@expo/vector-icons';
 import moment from 'moment';
 import * as ImagePicker from 'expo-image-picker';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { blankAvatar } from '../friendScreen/FriendScreen';
 import { formatDay, formatTime } from '../../component/formatTime';
 import { socket } from "../../utils/socket";
