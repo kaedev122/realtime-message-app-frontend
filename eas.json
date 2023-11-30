@@ -1,11 +1,7 @@
 {
   "build": {
-    "development": {
-      "extends": "production",
-      "developmentClient": true,
-      "distribution": "internal"
-    },
     "preview": {
+      "node": "18.17.1",
       "android": {
         "buildType": "apk"
       }
