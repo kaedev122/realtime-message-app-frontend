@@ -116,8 +116,8 @@ const UserProfileScreen = ({ navigation, route }: any) => {
     <View style={{ height: windowHeight - 80, width: windowWidth, backgroundColor: "#FFFFFF" }}>
       <StatusBar barStyle={"light-content"} backgroundColor={COLORS.main_color} />
       <Header>
-        <View style={{ flexDirection: "row", width: "100%", marginTop: Platform.OS === 'ios' ? 10 : 25 }}>
-          <Image style={{ width: 80, height: 80, marginTop: 5, marginLeft: 5, borderRadius: 10 }}
+        <View style={{ flexDirection: "row", width: "100%", marginTop: Platform.OS === 'ios' ? "3%" : "8%" }}>
+          <Image style={{ width: 80, height: 80, marginLeft: 5, borderRadius: 10 }}
             source={userData?.profilePicture ? { uri: currentUserData?.profilePicture } : blankAvatar}
           />
           <View style={{ flexDirection: "column", width: "100%", justifyContent: "space-around", marginLeft: 10 }} >

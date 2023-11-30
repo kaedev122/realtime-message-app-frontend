@@ -1,6 +1,5 @@
 import React, { useId, useState } from 'react';
 import { View, TextInput, StyleSheet, TouchableOpacity, Image, Text, StatusBar, Modal } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { getUserDataApi, updateUserByIdApi } from '../../services/UserService';
 import { blankAvatar } from '../friendScreen/FriendScreen';
 import { updateConversation } from "../../services/ChatService";
@@ -146,15 +145,9 @@ const UpdateUserScreen = ({ navigation, route, isModalVisible, setModalVisible }
         onChangeText={(text) => setNewPassword(text)}
       />
       <View style={{ justifyContent: "center", alignItems: "center" }}>
-        <TouchableOpacity onPress={handleUpdate}  >
-          <LinearGradient
-            colors={['#438875', '#99F2C8']}
-            start={{ x: 0, y: 1 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.button}
-          >
-            <Text style={styles.logInLabel}>Update</Text>
-          </LinearGradient>
+        <TouchableOpacity onPress={handleUpdate} style={styles.button}>
+
+          <Text style={styles.logInLabel}>Update</Text>
         </TouchableOpacity >
       </View>
       <StatusBar backgroundColor='black' barStyle="light-content" />
